@@ -483,7 +483,7 @@ sMeta.('uiInput') = uiInput;
 
 
 %Deselect Shepard's bias correction if projected time-series being used
-if regexpbl(sMeta.method,'proj') && sMeta.shepard == 1
+if regexpbl(sMeta.period,'proj') && sMeta.shepard == 1
    sMeta.shepard = 0;
    warning('downscale_main:ShepardWeightFut',['Shepards weighting '...
        'has been unselected because it is only applicable to '...
@@ -527,7 +527,7 @@ for rr = 1 : nR
             
             %Only compare output data to GHCN station records if historic data
             %being processed.
-            if ~isempty(ghcnStats) && regexpbl(sMeta.method,'his')
+            if ~isempty(ghcnStats) && regexpbl(sMeta.period,'his')
                 pathGridData = fullfile(sPath{jj}.output, 'output');
 
                 for kk = 1 : numel(ghcnStats)
@@ -548,7 +548,7 @@ for rr = 1 : nR
         
         
         %Check if joint variable validation requested:
-        if ~isempty(ghcnStats) && regexpbl(sMeta.method,'his') && regexpbl(ghcnStats,'joint')
+        if ~isempty(ghcnStats) && regexpbl(sMeta.period,'his') && regexpbl(ghcnStats,'joint')
             if regexpbl(sMeta.varOut,'pre') &&  regexpbl(sMeta.varOut,'tmp')
         %         pathGHCNOut = regexpi(sPathC.output{jj},filesep);
 
@@ -578,4 +578,4 @@ for rr = 1 : nR
     end
     clear mm
 end
-clear rr
+clear rr 
