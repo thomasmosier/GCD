@@ -21,30 +21,28 @@
 function stats = stn_stats_calc_v2(gridData, stnData)
 
 
+stats = struct;
 
 stnBias  = nan(1+length(gridData(:,1)),1);
 stnMAE   = nan(1+length(gridData(:,1)),1);
 stnMAPE  = nan(1+length(gridData(:,1)),1);
 stnWMAPE = nan(1+length(gridData(:,1)),1);
-stnCorr = nan(1+length(gridData(:,1)),2);
-
-nStnPts = zeros(length(gridData(:,1)),1);
+stnCorr  = nan(1+length(gridData(:,1)),2);
 
 for ii = 1 : length(gridData(:,1))
-%     stnTempDiff = gridData{ii,5}(:,2:13) - stnData{ii,5}(:,2:13);
-    nStnPts(ii) = sum(sum(~isnan(stnTempDiff)));
+
+    stnVec = stnData{ii,5}(:,2:13);
+    gridVec = gridData{ii,5}(:,2:13);
+    indUse = find(~isnan(stnVec) & ~isnan(gridVec));
     
-%     stnTotTemp = stnData{ii,5}(:,2:13);
-%     stnTotTemp(isnan(stnTempDiff)) = NaN;
-    
-    if isnan(nStnPts(ii)) || isempty(nStnPts(ii)) || nStnPts(ii) == 0
+    if isempty(indUse) || numel(indUse) == 0
         continue
     else 
-        stnBias(ii)   = fitness(stnData{ii,5}(:,2:13), gridData{ii,5}(:,2:13),  'bias');
-        stnMAE(ii)    = fitness(stnData{ii,5}(:,2:13), gridData{ii,5}(:,2:13),   'MAE');
-        stnMAPE(ii)   = fitness(stnData{ii,5}(:,2:13), gridData{ii,5}(:,2:13),  'MAPE');
-        stnWMAPE(ii)  = fitness(stnData{ii,5}(:,2:13), gridData{ii,5}(:,2:13), 'WMAPE');
-        stnCorr(ii,:) = fitness(stnData{ii,5}(:,2:13), gridData{ii,5}(:,2:13), 'pearson');
+        stnBias(ii)   = fitness(stnVec(indUse), gridVec(indUse),  'bias');
+        stnMAE(ii)    = fitness(stnVec(indUse), gridVec(indUse),   'MAE');
+        stnMAPE(ii)   = fitness(stnVec(indUse), gridVec(indUse),  'MAPE');
+        stnWMAPE(ii)  = fitness(stnVec(indUse), gridVec(indUse), 'WMAPE');
+        stnCorr(ii,:) = fitness(stnVec(indUse), gridVec(indUse), 'pearson');
 %         %BIAS
 %         stnBias(ii) = nansumn(nansumn( stnTempDiff )) / nStnPts(ii);
 % 

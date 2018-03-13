@@ -23,7 +23,7 @@ function mnth_stats_print_v2(fidReport, mnthStats, statSpec)
 
 
 %PRINT HDR STRING:
-strHdr = GHCN_stat_hdr(num2Month((1)),'Month',mnthStats, statSpec);
+strHdr = GHCN_stat_hdr(num2Month((1)),'Month', mnthStats, statSpec);
 % disp(repMnthHdrStr);
 fprintf(fidReport, '%s', [char(10) strHdr]);
 

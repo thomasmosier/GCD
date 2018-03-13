@@ -41,7 +41,7 @@ simPeriod = 'projection';	%Either 'historic' (for historical downscaling) or
                             %'projection' (for future projections)
 
 %Select the years and months to downscale:
-yrsDs = [2051, 2080]; %Ordered vector stating the first and last year of data 
+yrsDs = [2021, 2050]; %Ordered vector stating the first and last year of data 
                     %to be downscaled.
                     
 %List of all months to be processed 
@@ -59,7 +59,7 @@ metVarDs = {'pre'};   %Cell array of either/cobmination (Syntax for multiple is 
                     %'tmn' = monthly mean of minimum daily temperatures
                     %'tmx' = monthly mean of maximum daily temperatures
 
-%Downscaling + bias correction:
+%Downscaling _ bias correction:
 methodDs = 'eQM_delta';
     %DOWNSCALING
     %'delta' = implements delta method.

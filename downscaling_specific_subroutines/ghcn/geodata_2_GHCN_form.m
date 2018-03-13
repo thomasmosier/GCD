@@ -21,6 +21,7 @@
 function gridArray = geodata_2_GHCN_form(sGeodata, gridArray, ghcnArray, varargin)
 
 varUse = 'data';
+varDate = 'date';
 if ~isempty(varargin(:))
    for ii = 1 : numel(varargin(:))
        if strcmpi(varargin{ii}, 'var')
@@ -29,14 +30,27 @@ if ~isempty(varargin(:))
    end
 end
 
-[dateRef, gcmUnits] = NC_time_units(sGeodata.attTime);
-if ~regexpbl(gcmUnits, {'days','since'})
-    error('geodata_2_GHCN_form:timeUnits',['The time units of the '...
-    	'current gridded data are ' gcmUnits ', which are not recognized.']) 
-end
+if ~isfield(sGeodata, varDate)
+    varAttTime = '';
+    if isfield(sGeodata, 'attTime')
+        varAttTime = 'attTime';
+    elseif isfield(sGeodata, 'atttime')
+        varAttTime = 'atttime';
+    else
+        error('geodata2GhcnForm:noTimeAtt', 'No time attribute field was found.');
+    end
+    [dateRef, gcmUnits] = NC_time_units(sGeodata.(varAttTime));
+    if ~regexpbl(gcmUnits, {'days','since'})
+        error('geodata_2_GHCN_form:timeUnits',['The time units of the '...
+            'current gridded data are ' gcmUnits ', which are not recognized.']) 
+    end
      
-datesGrid = days_2_date(sGeodata.time, dateRef, NC_cal(sGeodata.attTime));
+    datesGrid = days_2_date(sGeodata.time, dateRef, NC_cal(sGeodata.(varAttTime)));
  
+else
+    datesGrid = sGeodata.(varDate);
+end
+
 if isfield(sGeodata,'lat')
     varLat = 'lat';
 elseif isfield(sGeodata,'latitude')
@@ -55,7 +69,7 @@ lonEdg = box_edg(sGeodata.(varLon));
 lonEdg = [lonEdg(1), lonEdg(end)];
 
 
-for ii = 1 : numel(sGeodata.time)
+for ii = 1 : numel(datesGrid(:,1))
     stnUse = GHCN_stn_avail(ghcnArray, datesGrid(ii,:));
     
     if isempty(stnUse)

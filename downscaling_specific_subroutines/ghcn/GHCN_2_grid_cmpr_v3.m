@@ -427,7 +427,8 @@ for kk = 1 : nVar
                 mkdir(dirReport);
             end
 
-            %ERROR:
+
+            %Calculate ERROR:
             aggStats  =  agg_stats_calc_v2(gridReform{kk}, stnRec{kk});
             mnthStats = mnth_stats_calc_v2(gridReform{kk}, stnRec{kk});
             stnStats  =  stn_stats_calc_v2(gridReform{kk}, stnRec{kk});
