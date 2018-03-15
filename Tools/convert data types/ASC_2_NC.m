@@ -23,13 +23,6 @@
 %Warning: if a current file has the same name as the desired output, the
 %existing file will be overwritten.
 
-%%LOAD MODULES:
-%Add path of modules that may be called.
-pathScript = mfilename('fullpath');
-[pathScript, ~, ~] = fileparts(pathScript);
-indParent = regexpi(pathScript, filesep);
-indParent = indParent(end); %Assumes scripts are in distribution hierarchy.
-addpath(genpath(pathScript(1:indParent-1))); %Add modules
 
 %%INNERWORKINGS (DO NOT MODIFY)
 %Find directy of ESRI gridded ASCII files to convert:
@@ -50,12 +43,31 @@ end
 %%Identify time-series elements present:
 aryTime = NaN(length(filesTS),3);   %Initialize array to use
 
-%Put all time-series elements into array:
-for ii = 1 : length(filesTS)
-    indSep = regexpi(filesTS{ii},'_|\.');
-    aryTime(ii,1:2) = [str2double(filesTS{ii}(indSep(end-2)+1:indSep(end-1)-1)), ... 
-        str2double(filesTS{ii}(indSep(end-1)+1:indSep(end)-1))];
+%Test for date representation in file name and put name into array
+strNcConv = '\d{6}-\d{6}';
+strCruConv = '\d{4}_\d{1}';
+if ~isempty(regexpi(filesTS{1}, strNcConv)) %NetCDF convention ("18960101-18960131")
+    for ii = 1 : length(filesTS)
+        indDate = regexpi(filesTS{ii}, strNcConv);
+        aryTime(ii,1:2) = [str2double(filesTS{ii}(indDate(end):indDate(end)+3)), ... 
+            str2double(filesTS{ii}(indDate(end)+4:indDate(end)+5))];
+    end
+elseif ~isempty(regexpi(filesTS{1}, strCruConv))  %CRU underscore convention ("1896_01")
+    for ii = 1 : length(filesTS)
+        indDate = regexpi(filesTS{ii}, strCruConv);
+        indUnd = regexpi(filesTS{ii}, '_');
+        indPer = regexpi(filesTS{ii}, '\.');
+        indSep = regexpi(filesTS{ii},'_|\.');
+        aryTime(ii,1:2) = [str2double(filesTS{ii}(indDate(end):indUnd(end)-1)), ... 
+            str2double(filesTS{ii}(indUnd(end)+1:indPer(end)-1))];
+    end
+else
+    error('asc2nc:name',['Date format in the file ' strCruConv ' not programmed for.']);
 end
+
+%Get the root file name:
+fileRt = filesTS{1}(1:indDate(end)-1);
+
 
 %Sort array of time-series elements:
 %Ensure Year comes first:
@@ -72,16 +84,16 @@ aryTime(:,3) = eomday(aryTime(:,1),aryTime(:,2));
 
 %%Write NetCDF File:
 %Identify data type:
-if ~isempty(regexpi(filesTS{1},'pre'))
+if regexpbl(filesTS{1},'pr')
     clmVarLng = 'precipitation';
     clmVar = 'pre';
-elseif ~isempty(regexpi(filesTS{1},'tmx')) || ~isempty(regexpi(filesTS{1},'tasmax'))
+elseif regexpbl(filesTS{1},'tmx') || regexpbl(filesTS{1},'tasmax')
     clmVarLng = 'maximum temperature';
     clmVar = 'tmx';
-elseif ~isempty(regexpi(filesTS{1},'tmn')) || ~isempty(regexpi(filesTS{1},'tasmin'))
+elseif regexpbl(filesTS{1},'tmn') || regexpbl(filesTS{1},'tasmin')
     clmVarLng = 'minimum temperature';
     clmVar = 'tmn';
-elseif ~isempty(regexpi(filesTS{1},'tmp')) || ~isempty(regexpi(filesTS{1},'tas')) %'tas' must come after 'tasmax' and 'tasmin' to eliminate possibility of a false positive
+elseif regexpbl(filesTS{1},'tmp') || regexpbl(filesTS{1},'tas') %'tas' must come after 'tasmax' and 'tasmin' to eliminate possibility of a false positive
     clmVarLng = 'mean temperature';  
     clmVar = 'tmp';
 end
@@ -89,43 +101,55 @@ end
 %Load example gridded data:
 [dataEx, hdrESRI] = read_ESRI(fullfile(dirData,filesTS{1}));
 
-%Initialize file:
-pathNC = fullfile(dirData,[filesTS{1}(1:indSep(end-2)-1), '_', ...
-    num2str(aryTime(1,1)), 'thru' num2str(aryTime(end,1)), '.nc']);
-if exist(pathNC,'file') ~= 0
-    ovrwrt = input(['A file with the name ' char(39) pathNC char(39) ...
-        ' already exists.' char(10) ...
-        'Would you like to overwrite this file? (Y or N) \n'],'s');
-    if ~isempty(regexpi(ovrwrt,'y'))
-        disp(['The file ' pathNC ' is being overwritten.'])
-        delete(pathNC);
-    else
-        disp(['You chose to not overwrite the file ' pathNC ...
-            '.  The script will now quit.']);
-        quit;
-    end
+strMnthStrt = num2str(aryTime(1,2));
+if numel(strMnthStrt) == 1
+    strMnthStrt = ['0' strMnthStrt];
 end
 
-nccreate(pathNC,'time','Dimensions',{'time' length(aryTime(:,1))}, ...
+strMnthEnd = num2str(aryTime(end,2));
+if numel(strMnthEnd) == 1
+    strMnthEnd = ['0' strMnthEnd];
+end
+
+strDayStrt = num2str(aryTime(1,3));
+if numel(strDayStrt) == 1
+    strDayStrt = ['0' strDayStrt];
+end
+
+strDayEnd = num2str(aryTime(end,3));
+if numel(strDayEnd) == 1
+    strDayEnd = ['0' strDayEnd];
+end
+
+%Initialize file:
+fileNc = [fileRt '_' num2str(aryTime(1,1)), strMnthStrt, '01', 'thru', num2str(aryTime(end,1)), strMnthEnd, strDayEnd, '.nc'];
+pathNc = fullfile(dirData, fileNc);
+if exist(pathNc,'file') ~= 0
+    disp(['The file ' pathNc ' already exists and is being overwritten.'])
+    delete(pathNc);
+end
+
+nccreate(pathNc,'time','Dimensions',{'time' length(aryTime(:,1))}, ...
     'Format','netcdf4', 'Datatype', 'single');
-nccreate(pathNC,'latitude', 'Dimensions',{'lat' hdrESRI(2)}, ...
+nccreate(pathNc,'latitude', 'Dimensions',{'lat' hdrESRI(2)}, ...
     'Format','netcdf4', 'Datatype', 'double');
-nccreate(pathNC,'longitude','Dimensions',{'lon' hdrESRI(1)}, ...
+nccreate(pathNc,'longitude','Dimensions',{'lon' hdrESRI(1)}, ...
     'Format','netcdf4', 'Datatype', 'double');
 if ~isempty(regexpi(clmVar,'pre'))
     dataTyp = 'uint16';
 else
     dataTyp = 'single';
 end
-nccreate(pathNC, clmVar, 'Dimensions', ...
+nccreate(pathNc, clmVar, 'Dimensions', ...
     {'time' length(aryTime(:,1)) 'lat' hdrESRI(2) 'lon' hdrESRI(1)}, ...
     'Format','netcdf4', 'Datatype', dataTyp);
 
 %Define attributes to be written
+strCal = 'Gregorian';
 metaTime = {...   
     'bounds', 'time_bnds'; ...
     'units', 'days since 1900-01-01'; ...
-    'calendar', 'gregorian'; ...
+    'calendar', strCal; ...
     'axis', 'T'; ...
     'long_name', 'time'; ...
     'standard_name', 'time'; ...
@@ -182,14 +206,14 @@ elseif ~isempty(regexpi(clmVar,'tmp')) || ~isempty(regexpi(clmVar,'tmn')) || ~is
     end
 end
 
-strSrc = input(['Enter any source information to write into the ' ...
-    'netCDF attributes list (e.g. low-res source dataset and version, '...
-    'method notes, etc.):' char(10)],'s');
+% strSrc = input(['Enter any source information to write into the ' ...
+%     'netCDF attributes list (e.g. low-res source dataset and version, '...
+%     'method notes, etc.):' char(10)],'s');
 
 attGen = {...
     'title', ''; ...
-    'institution', 'Data held at Oregon State University.'; ...
-    'source', strSrc; ...
+    %'institution', 'Data held at Oregon State University.'; ...
+    %'source', strSrc; ...
     'history', ['Converted on ' date ' using scripts created by Thomas Mosier (mosier.thomas@gmail.com) for use with associated downscaling package.']; ...
     'references', 'Information on the data is available at http://globalclimatedata.org'; ...
     'comment', 'Data restrictions: for academic research use only. Contact Thomas Mosier for details'; ...
@@ -206,50 +230,50 @@ end
 
 %Initialize waitbar:
 warning('off','MATLAB:gui:latexsup:UnableToInterpretTeXString');
-hWait = waitbar(0,['The ESRI ASCII data in ' dirData ...
-    ' is currently being processed.  '...
-    'The first ASCII file will be converted to NetCDF format shortly.'],...
+hWait = waitbar(0,strrep(['The ESRI ASCII data in ' dirData ...
+    ' is currently being processed. '...
+    'The first ASCII file will be converted to NetCDF format shortly.'], '_', '\_'),...
     'CreateCancelBtn','button_callback');
 
 %Write global attributes:
 for ii = 1 : length(attGen(:,1))
-    ncwriteatt(pathNC,'/',attGen{ii,1},attGen{ii,2}) %'/' indicates global attribute
+    ncwriteatt(pathNc,'/',attGen{ii,1},attGen{ii,2}) %'/' indicates global attribute
 end
 
 %Write time variable attributes:
 for ii = 1 : length(metaTime(:,1))
-    ncwriteatt(pathNC,'time',metaTime{ii,1},metaTime{ii,2}) %'/' indicates global attribute
+    ncwriteatt(pathNc,'time',metaTime{ii,1},metaTime{ii,2}) %'/' indicates global attribute
 end
 
 %Write longitude variable attributes:
 for ii = 1 : length(metaLon(:,1))
-    ncwriteatt(pathNC,'longitude',metaLon{ii,1},metaLon{ii,2}) %'/' indicates global attribute
+    ncwriteatt(pathNc,'longitude',metaLon{ii,1},metaLon{ii,2}) %'/' indicates global attribute
 end
 
 %Write latitude variable attributes:
 for ii = 1 : length(metaLat(:,1))
-    ncwriteatt(pathNC,'latitude',metaLat{ii,1},metaLat{ii,2}) %'/' indicates global attribute
+    ncwriteatt(pathNc,'latitude',metaLat{ii,1},metaLat{ii,2}) %'/' indicates global attribute
 end
 
 %Write data variable attributes:
 for ii = 1 : length(metaData(:,1))
-    ncwriteatt(pathNC,clmVar,metaData{ii,1},metaData{ii,2}) %'/' indicates global attribute
+    ncwriteatt(pathNc,clmVar,metaData{ii,1},metaData{ii,2}) %'/' indicates global attribute
 end
 
 %%Create and Write Variables to NetCDF File:
 %Time:
-vecTime = days_between([1900,1,1], [aryTime(:,1), aryTime(:,2), round(aryTime(:,3)/2)], 0);
-ncwrite(pathNC,'time',vecTime);
+vecTime = days_since([1900,1,1], [aryTime(:,1), aryTime(:,2), round(aryTime(:,3)/2)], strCal);
+ncwrite(pathNc,'time',vecTime);
 
 %Longitude:
 vecLon = hdrESRI(3) + 0.5*hdrESRI(5) : hdrESRI(5) : hdrESRI(3) + (hdrESRI(1)-0.5)*hdrESRI(5);
 vecLon = vecLon';
-ncwrite(pathNC,'longitude',vecLon);
+ncwrite(pathNc,'longitude',vecLon);
 
 %Latitude:
 vecLat = hdrESRI(4) + (hdrESRI(2)-0.5)*hdrESRI(5) : -hdrESRI(5) : hdrESRI(4) + 0.5*hdrESRI(5);
 vecLat = vecLat';
-ncwrite(pathNC,'latitude',vecLat);
+ncwrite(pathNc,'latitude',vecLat);
 
 %Data:
 for ii = 1 : length(filesTS(:))
@@ -259,18 +283,18 @@ for ii = 1 : length(filesTS(:))
 %     stride = NaN(length(vecTime(:)),length(vecLat(:)),length(vecLon(:)));
 %     stride(ii,:,:) = 1; 
 %     ncwrite(pathNC,clmVar,dataCurr,ptStrt,stride);
-    ncwrite(pathNC,clmVar,dataCurr,ptStrt);
+    ncwrite(pathNc,clmVar,dataCurr,ptStrt);
     
     %Update waitbar:
     waitbar(ii/length(filesTS(:)), hWait, ['The file ' ...
-        char(filesTS{ii}) ' has been written to ' char(pathNC) '.']);
+        char(filesTS{ii}) ' has been written to ' char(pathNc) '.']);
 end
 
 delete(hWait);
 warning('on','MATLAB:gui:latexsup:UnableToInterpretTeXString');
 disp(['The script has finished.  ' num2str(length(filesTS(:))) ...
     ' ESRI formatted ASCII data files were converted to netCDF ' ...
-    'format and placed in ' pathNC '.']);
+    'format and placed in ' pathNc '.']);
 
 % %For Testing and Diagnostics: 
 % ncdisp(pathNC)

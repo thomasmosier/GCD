@@ -4,8 +4,8 @@ function method_direct(sPath, sDs)
 %Load time invariant data:
 sTInv = ds_ld_fields(sPath, sDs.fldsTInv, sDs.lonDs, sDs.latDs, nan(1,2), nan(1,1));
 if numel(sTInv(:)) == 1
-    latOut = find( sTInv{1}.(sDs.varLat) >= min(sDs.latDs) & sTInv{1}.(sDs.varLat) <= max(sDs.latDs));
-    lonOut = find( sTInv{1}.(sDs.varLon) >= min(sDs.lonDs) & sTInv{1}.(sDs.varLon) <= max(sDs.lonDs));
+    latOut = sTInv{1}.(sDs.varLat)(sTInv{1}.(sDs.varLat) >= min(sDs.latDs) & sTInv{1}.(sDs.varLat) <= max(sDs.latDs));
+    lonOut = sTInv{1}.(sDs.varLon)(sTInv{1}.(sDs.varLon) >= min(sDs.lonDs) & sTInv{1}.(sDs.varLon) <= max(sDs.lonDs));
     
     [lonMeshOut, latMeshOut] = meshgrid(lonOut, latOut);
 else
@@ -64,7 +64,7 @@ for ii = 1 : sDs.nLp
         sTsOut.(sDs.varDs) = nan([numel(sTVar{sDs.indDs}.time), size(lonMeshOut)], 'single');
 
     %%ITERATE OVER timesteps:
-    for jj = 1 : numel(sDs.time)
+    for jj = 1 : numel(sTsOut.date(:,1))
         if regexpi(sDs.intrp,'pchip')
             sTsOut.(sDs.varDs)(jj,:,:) = ...
                 PCHIP_2D(lonMeshIn, latMeshIn, squeeze(sTVar{sDs.indDs}.(sDs.varDs)(jj,:,:)), lonMeshOut, latMeshOut);
@@ -77,8 +77,42 @@ for ii = 1 : sDs.nLp
     
     %Write inputs and outputs:
     if ~isempty(sDs.wrtOut)
-        ds_wrt_inputs(sTVar, sDs, sPath)
-        ds_wrt_outputs(sTsOut, 'intrp', sDs, sPath)
+%         ds_wrt_inputs(sTVar, sDs, sPath);
+        
+        if mnthCurr < 10
+            strMnth = ['0' num2str(mnthCurr)];
+        else
+        	strMnth = num2str(mnthCurr);
+        end
+        strData = sPath.(['nm_' sDs.fldsTVar{indDsIn}]){1};
+        
+        for kk = 1 : numel(sDs.wrtOut(:))
+            if regexpbl(sDs.wrtOut{kk}, {'ds','ts'}, 'and') || regexpbl(sDs.wrtOut{kk}, {'downscale','ts'}, 'and')
+                %Make file and path names:
+                fileCurr = [sDs.varDs '_' sDs.timestep '_' strData '-ds-' sDs.region '_intrp-' sDs.intrp '_' ...
+                    num2str(min(sDs.yrsDs)) strMnth '01' '-' ...
+                    num2str(max(sDs.yrsDs)) strMnth num2str(eomday(max(sDs.yrsDs), mnthCurr))];
+
+                ds_wrt_outputs(sTsOut, 'intrp_ts', sDs, sPath, 'file', fileCurr, 'yrs', sDs.yrsDs);
+            elseif regexpbl(sDs.wrtOut{kk}, {'ds','clim'}, 'and')
+                %Create interpolated climatology
+                sDsClm = sTsOut;
+                    sDsClm.(sDs.varDs) = nanmean(sTsOut.(sDs.varDs)(sTsOut.date(:,1) >= min(sDs.yrsDs) & sTsOut.date(:,1) <= max(sDs.yrsDs),:,:), 1);
+                    if isfield(sDsClm, 'time')
+                        sDsClm.time = nan;
+                    end
+                    if isfield(sDsClm, 'date')
+                        sDsClm.('date') = nan(1,2);
+                    end
+ 
+                %Make file and path names:
+                fileCurr = [sDs.varDs '_' strData '-intrpclim-' sDs.region '_intrp-' sDs.intrp '_' ...
+                    num2str(min(sDs.yrsDs)) 'thru' ...
+                    num2str(max(sDs.yrsDs)) '_' strMnth];
+                ds_wrt_outputs(sDsClm, 'intrp_clim', sDs, sPath, 'folder', 'intrp_clim', 'file', fileCurr); 
+            end
+        end
+        clear kk
     end
     
     %%DISPLAY DURATION OF TIME FOR-LOOP HAS BEEN RUNNING

@@ -184,15 +184,16 @@ for ii = 1 : sDs.nLp
         	strMnth = num2str(mnthCurr);
         end
         
-        %Make file and path names:
-        fileCurr = [sDs.varDs '_' sDs.timestep '_' strData '-ds-' sDs.region '_delta_' ...
-            num2str(min(sDs.yrsDs)) strMnth '01' '-' ...
-            num2str(max(sDs.yrsDs)) strMnth num2str(eomday(max(sDs.yrsDs), mnthCurr))];
-        
-        ds_wrt_outputs(sTsOut, 'delta', sDs, sPath, 'file', fileCurr, 'yrs', sDs.yrsDs);
-       
+        %Write outputs
         for kk = 1 : numel(sDs.wrtOut(:))
-            if regexpbl(sDs.wrtOut{kk}, {'hr','anom'}, 'and')
+            if regexpbl(sDs.wrtOut{kk}, {'ds','ts'}, 'and') || regexpbl(sDs.wrtOut{kk}, {'downscale','ts'}, 'and')
+                %Make file and path names:
+                fileCurr = [sDs.varDs '_' sDs.timestep '_' strData '-ds-' sDs.region '_delta_intrp-' sDs.intrp '_' ...
+                    num2str(min(sDs.yrsDs)) strMnth '01' '-' ...
+                    num2str(max(sDs.yrsDs)) strMnth num2str(eomday(max(sDs.yrsDs), mnthCurr))];
+
+                ds_wrt_outputs(sTsOut, 'delta', sDs, sPath, 'file', fileCurr, 'yrs', sDs.yrsDs);
+            elseif regexpbl(sDs.wrtOut{kk}, {'hr','anom'}, 'and')
                 ds_wrt_outputs(sAnomOut, 'hranom', sDs, sPath, 'folder', fullfile('hranom'), 'yrs', sDs.yrsDs);
             elseif regexpbl(sDs.wrtOut{kk}, {'lr','anom'}, 'and')
                 ds_wrt_outputs(sAnomIn, 'lranom', sDs, sPath, 'folder', fullfile('lranom'), 'yrs', sDs.yrsDs);
@@ -204,7 +205,6 @@ for ii = 1 : sDs.nLp
                 sDsClm = sSimClm;
                     sDsClm.(varLon) = sTsOut.(varLon);
                     sDsClm.(varLat) = sTsOut.(varLat);
-                    sDsClm.(varLd) = squeeze(nanmean(sTsOut.(varLd), 1));
                     if isfield(sDsClm, 'time')
                         sDsClm.time = nan;
                     end
@@ -212,7 +212,7 @@ for ii = 1 : sDs.nLp
                         sDsClm.(varDate) = nan(1,2);
                     end
         
-                    sDsClm.(sDs.varDs) = sTsOut.(sDs.varDs)(sTsOut.date(:,1) >= min(sDs.yrsDs) & sTsOut.date(:,1) <= max(sDs.yrsDs),:,:);
+                sDsClm.(sDs.varDs) = nanmean(sTsOut.(sDs.varDs)(sTsOut.date(:,1) >= min(sDs.yrsDs) & sTsOut.date(:,1) <= max(sDs.yrsDs),:,:), 1);
                 ds_wrt_outputs(sDsClm, 'dsclim', sDs, sPath, 'folder', fullfile('dsclim')); 
             end
         end
