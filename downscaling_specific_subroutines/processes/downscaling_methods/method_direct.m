@@ -1,5 +1,9 @@
 function method_direct(sPath, sDs)
 
+varLat = 'latitude';
+varLon = 'longitude';
+varDate = 'date';
+
 
 %Load time invariant data:
 sTInv = ds_ld_fields(sPath, sDs.fldsTInv, sDs.lonDs, sDs.latDs, nan(1,2), nan(1,1));
@@ -58,13 +62,13 @@ for ii = 1 : sDs.nLp
     
     %Initialize output structure:
     sTsOut = sTVar{sDs.indDs};
-        sTsOut.lat = latOut;
-        sTsOut.lon = lonOut;
+        sTsOut.(varLat) = latOut;
+        sTsOut.(varLon) = lonOut;
         sTsOut.time = sTVar{sDs.indDs}.time;
-        sTsOut.(sDs.varDs) = nan([numel(sTVar{sDs.indDs}.time), size(lonMeshOut)], 'single');
+        sTsOut.(sDs.varDs) = nan([numel(sTVar{sDs.indDs}.(varDate)(:,1)), size(lonMeshOut)], 'single');
 
     %%ITERATE OVER timesteps:
-    for jj = 1 : numel(sTsOut.date(:,1))
+    for jj = 1 : numel(sTsOut.(varDate)(:,1))
         if regexpi(sDs.intrp,'pchip')
             sTsOut.(sDs.varDs)(jj,:,:) = ...
                 PCHIP_2D(lonMeshIn, latMeshIn, squeeze(sTVar{sDs.indDs}.(sDs.varDs)(jj,:,:)), lonMeshOut, latMeshOut);
@@ -93,16 +97,16 @@ for ii = 1 : sDs.nLp
                     num2str(min(sDs.yrsDs)) strMnth '01' '-' ...
                     num2str(max(sDs.yrsDs)) strMnth num2str(eomday(max(sDs.yrsDs), mnthCurr))];
 
-                ds_wrt_outputs(sTsOut, 'intrp_ts', sDs, sPath, 'file', fileCurr, 'yrs', sDs.yrsDs);
+                ds_wrt_outputs(sTsOut, 'ds', sDs, sPath, 'file', fileCurr, 'folder', 'ts', 'yrs', sDs.yrsDs);
             elseif regexpbl(sDs.wrtOut{kk}, {'ds','clim'}, 'and')
                 %Create interpolated climatology
                 sDsClm = sTsOut;
-                    sDsClm.(sDs.varDs) = nanmean(sTsOut.(sDs.varDs)(sTsOut.date(:,1) >= min(sDs.yrsDs) & sTsOut.date(:,1) <= max(sDs.yrsDs),:,:), 1);
+                    sDsClm.(sDs.varDs) = nanmean(sTsOut.(sDs.varDs)(sTsOut.(varDate)(:,1) >= min(sDs.yrsDs) & sTsOut.(varDate)(:,1) <= max(sDs.yrsDs),:,:), 1);
                     if isfield(sDsClm, 'time')
                         sDsClm.time = nan;
                     end
-                    if isfield(sDsClm, 'date')
-                        sDsClm.('date') = nan(1,2);
+                    if isfield(sDsClm, varDate)
+                        sDsClm.(varDate) = nan(1,2);
                     end
  
                 %Make file and path names:
