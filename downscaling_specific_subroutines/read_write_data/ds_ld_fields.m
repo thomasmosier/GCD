@@ -320,7 +320,7 @@ if ~strcmpi(resample, 'none')
         end
         
     elseif regexpbl(resample, {'up','area','conserve','remap'}, 'and')    
-        warning('dsLdFlds:unknownareaConserveRemap','area_conserve_remap has not yet been added. Please add!')
+        warning('dsLdFlds:unknownareaConserveRemap','area_conserve_remap has not yet been added. It should be consistent with the area_wgt option.')
     else
         error('dsLdFlds:unknownResampleMethod',['The resampling method ' ...
             resample ' has not been programmed for.']);
