@@ -62,6 +62,9 @@ metVarDs = {'pre'};   %Cell array of either/cobmination (Syntax for multiple is 
 %Downscaling _ bias correction:
 methodDs = 'eQM_delta';
     %DOWNSCALING
+    %'tlapse' = temperature lapse rate downscaling
+    %'pw' = empirical relationship between changes in precipitable water
+    %and changes in elevation
     %'delta' = implements delta method.
     %'direct' = directly interpolates low-resolution time-series grid to 
         %reference grid

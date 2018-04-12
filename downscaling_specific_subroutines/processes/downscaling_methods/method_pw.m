@@ -332,7 +332,7 @@ for ii = 1 : sDs.nLp
         
         if blWrtFig == 1
             hFig = figure('color', 'white','visible','off'); hold on; 
-            hPClr = pcolor(sTVar{sDs.indCm}.(varLon), sTVar{sDs.indCm}.(varLat), double(squeeze(sTVar{sDs.indCm}.(sDs.varDs)(mm,:,:)))); colorbar; 
+            hPClr = imagesc(sTVar{sDs.indCm}.(varLon), sTVar{sDs.indCm}.(varLat), double(squeeze(sTVar{sDs.indCm}.(sDs.varDs)(mm,:,:)))); colorbar; 
             hold off
             xlabel('Longitude (degrees East)'); ylabel('Latitude (degrees North)');
             pathFig = fullfile(foldFig, [sDs.varDs '_clim_' num2str(min(sDs.yrsBase)) '-' num2str(max(sDs.yrsBase)) '_' num2str(mnthUse(mm))]);
@@ -365,7 +365,7 @@ for ii = 1 : sDs.nLp
         
         if blWrtFig == 1
             hFig = figure('color', 'white','visible','off'); hold on; 
-            pcolor(sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), double(squeeze(sTVar{sDs.indCm}.(varPW)(mm,:,:)))); colorbar; 
+            imagesc(sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), double(squeeze(sTVar{sDs.indCm}.(varPW)(mm,:,:)))); colorbar; 
             hold off
             xlabel('Longitude (degrees East)'); ylabel('Latitude (degrees North)');
             pathFig = fullfile(foldFig, [varPW '_wet-day_clim_' num2str(min(sDs.yrsBase)) '-' num2str(max(sDs.yrsBase)) '_' num2str(mnthUse(mm))]);
@@ -450,7 +450,7 @@ for ii = 1 : sDs.nLp
             %PW gradient with arrows:
             hFig = figure('color', 'white','visible','off'); 
             hold on; 
-            pcolor(sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), double(qLr)); colorbar; 
+            imagesc(sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), double(qLr)); colorbar; 
             quiver(lrPrGridLon, lrPrGridLat, ...
                 squeeze(sTVar{sDs.indCm}.(varDeltaXPw)(mm,:,:)), ...
                 squeeze(sTVar{sDs.indCm}.(varDeltaYPw)(mm,:,:)),...
@@ -475,7 +475,7 @@ for ii = 1 : sDs.nLp
 
             %Alignment with arrows:
             hFig = figure('color', 'white','visible','off'); hold on; 
-            pcolor(sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), ...
+            imagesc(sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), ...
                 double(squeeze(sTVar{sDs.indCm}.(varDeltaMagPw)(mm,:,:)))); colorbar; 
             quiver(lrPrGridLon, lrPrGridLat, ...
                 squeeze(sTVar{sDs.indCm}.(varDeltaXPw)(mm,:,:)), ...

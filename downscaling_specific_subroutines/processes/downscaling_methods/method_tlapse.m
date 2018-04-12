@@ -134,7 +134,7 @@ end
 %Plot elevation histograms
 if blWrtFig == 1
     hFig = figure('color', 'white','visible','off'); hold on; 
-    hPClrY = pcolor(sTInv{indLrDem}.(varLon), sTInv{indLrDem}.(varLat), double(squeeze(sTInv{indLrDem}.(varDeltaY)))); colorbar; 
+    hPClrY = imagesc(sTInv{indLrDem}.(varLon), sTInv{indLrDem}.(varLat), double(squeeze(sTInv{indLrDem}.(varDeltaY)))); colorbar; 
     hold off
     xlabel('Longitude (degrees East)'); ylabel('Latitude (degrees North)');
     pathFig = fullfile(foldFig, 'lowres_deltaY');
@@ -315,7 +315,7 @@ for ii = 1 : sDs.nLp
         
         if blWrtFig == 1
             hFig = figure('color', 'white','visible','off'); hold on; 
-            hPClr = pcolor(sTVar{sDs.indCm}.(varLon), sTVar{sDs.indCm}.(varLat), double(squeeze(sTVar{sDs.indCm}.(sDs.varDs)(mm,:,:)))); colorbar; 
+            hPClr = imagesc(sTVar{sDs.indCm}.(varLon), sTVar{sDs.indCm}.(varLat), double(squeeze(sTVar{sDs.indCm}.(sDs.varDs)(mm,:,:)))); colorbar; 
             hold off
             xlabel('Longitude (degrees East)'); ylabel('Latitude (degrees North)');
             pathFig = fullfile(foldFig, [sDs.varDs '_clim_' num2str(min(sDs.yrsBase)) '-' num2str(max(sDs.yrsBase)) '_' num2str(mnthUse(mm))]);
@@ -333,7 +333,7 @@ for ii = 1 : sDs.nLp
     clear mm
     
     
-    %Calculate sptail changes in climatologies:
+    %Calculate spatial changes in climatologies:
     for mm = 1 : numel(mnthUse)
         [sTVar{sDs.indCm}.(varDeltaX)(mm,:,:), sTVar{sDs.indCm}.(varDeltaY)(mm,:,:)] = gradient_map(squeeze(sTVar{sDs.indCm}.(sDs.varDs)(mm,:,:)));
 
@@ -521,7 +521,7 @@ for ii = 1 : sDs.nLp
             lpRtZones(indSoExt  ) = 5; %Extra Southern
             
             hFig = figure('color', 'white','visible','off'); hold on; 
-            pcolor(sTInv{indLrDem}.(varLon), sTInv{indLrDem}.(varLat), double(lpRtZones)); colorbar; 
+            imagesc(sTInv{indLrDem}.(varLon), sTInv{indLrDem}.(varLat), double(lpRtZones)); colorbar; 
             hold off
             pathFig = fullfile(foldFig, [sDs.varDs '_lapse-rate-zones']);
             if exist([pathFig, '.fig'], 'file')
@@ -555,7 +555,7 @@ for ii = 1 : sDs.nLp
     if blWrtFig == 1
         for mm = 1 : 12
             hFig = figure('color', 'white','visible','off'); hold on; 
-            pcolor(sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), double(squeeze(lrLpsMnth(mm,:,:)))); colorbar; 
+            imagesc(sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), double(squeeze(lrLpsMnth(mm,:,:)))); colorbar; 
             hold off
             xlabel('Longitude (degrees East)'); ylabel('Latitude (degrees North)');
             pathFig = fullfile(foldFig, [sDs.varDs '_lr_lapse-rate_' num2str(mm)]);
