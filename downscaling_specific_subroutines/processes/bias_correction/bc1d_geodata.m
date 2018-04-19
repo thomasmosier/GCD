@@ -93,14 +93,21 @@ for mm = 1 : numel(sSim2Bc)
     indSimH = find(sSimH{mm}.(varDate)(:,1) >= min(yrsBase) & sSimH{mm}.(varDate)(:,1) <= max(yrsBase));
     indRefH = find(sRefH.(varDate)(:,1) >= min(yrsBase) & sRefH.(varDate)(:,1) <= max(yrsBase));
 
-    if numel(indRefH) ~= numel(indSimH)
+    nRefH = numel(indRefH);
+    nSimH = numel(indSimH);
+    if nRefH ~= nSimH
         [indSameSimH, ~] = ismember(sSimH{mm}.(varDate)(:,1), sRefH.(varDate)(:,1), 'rows');
         [indSameRefH, ~] = ismember(sRefH.(varDate)(:,1), sSimH{mm}.(varDate)(:,1), 'rows');
 
         indSimH = intersect(indSimH, sort(find(indSameSimH ~= 0)));
         indRefH = intersect(indRefH, sort(find(indSameRefH ~= 0)));
         warning('eQMgeodata:unequalYrs', ['The number of years present in the '...
-           'two datasets being compared are not equal. They are going to be set to the common years of ' num2str(min(sSimH{mm}.(varDate)(indSimH,1))) '-' num2str(max(sSimH{mm}.(varDate)(indSimH,1)))]); 
+           'two datasets being compared are not equal (' ...
+            num2str(nSimH) ' in historic simulation and ' ...
+            num2str(nRefH) ' in historic reference). They are ' ...
+            'going to be set to the common years of ' ...
+            num2str(min(sSimH{mm}.(varDate)(indSimH,1))) '-' ...
+            num2str(max(sSimH{mm}.(varDate)(indSimH,1)))]); 
     end
 
 
