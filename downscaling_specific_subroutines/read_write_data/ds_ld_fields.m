@@ -6,6 +6,7 @@ indiceIn = nan;
 resample = 'none';
 fr = 4;
 cropType = 'out';
+filesLd = '';
 if ~isempty(varargin(:))
     for ii = 1 : numel(varargin(:))
         if strcmpi(varargin{ii}, 'units')
@@ -18,6 +19,8 @@ if ~isempty(varargin(:))
             resample = varargin{ii+1};
         elseif strcmpi(varargin{ii}, 'frame')
             fr = varargin{ii+1};
+        elseif strcmpi(varargin{ii}, 'onefile')
+            filesLd = 'onefile';
         end
     end
 end
@@ -50,10 +53,10 @@ for ii = 1 : numel(fldsLd)
 
     if all(~isnan(mnthsLd))
         sData{ii} = read_geodata_v2(char(sPath.(fldsLd{ii})), varLd, ...
-            lonDs, latDs, yrsLd, fr, cropType, 'months', mnthsLd);
+            lonDs, latDs, yrsLd, fr, cropType, 'months', mnthsLd, filesLd);
     else
         sData{ii} = read_geodata_v2(char(sPath.(fldsLd{ii})), varLd, ...
-            lonDs, latDs, yrsLd, fr, cropType);
+            lonDs, latDs, yrsLd, fr, cropType, filesLd);
     end
     sData{ii}.(varName) = fldsLd{ii};
     

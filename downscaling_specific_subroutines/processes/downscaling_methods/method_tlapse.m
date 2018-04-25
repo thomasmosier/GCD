@@ -4,7 +4,7 @@ function method_tlapse(sPath, sDs)
 strNorm = 'none';
 % warning('methodTLapse:manualOpts','Set degN and elevHg in systematic/automatic way.')
 
-strFigRes = '-r300';
+strFigRes = '-r600';
 
 
 %Make figures
@@ -58,7 +58,7 @@ else
 end
 
 %Load time invariant data:
-sTInv = ds_ld_fields(sPath, sDs.fldsTInv, sDs.lonDs, sDs.latDs, nan(1,2), nan(1,1));
+sTInv = ds_ld_fields(sPath, sDs.fldsTInv, sDs.lonDs, sDs.latDs, nan(1,2), nan(1,1), 'onefile');
 
 %Find high-res output DEM:
 indHrDem = nan;
@@ -768,7 +768,7 @@ for ii = 1 : sDs.nLp
 
     %%DISPLAY DURATION OF TIME FOR-LOOP HAS BEEN RUNNING
     deltatLoop = toc;
-    perCmplt = 100*ii / numel(sDs.nLp);
+    perCmplt = 100*ii / sDs.nLp;
     disp(['The ' sDs.method ' method has finished processing ' ...
         sDs.varDs ' data for ' mnthDisp ' (' ...
         num2str(round(100*perCmplt)/100) '% complete; elapsed time = ' ...

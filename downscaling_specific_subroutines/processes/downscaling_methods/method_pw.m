@@ -6,7 +6,7 @@ strNorm = 'none';
 
 wetThresh = 1.016; %Precipitation constituting a dry day (units = mm). Use 0 instead of USGS definition of 0.04 inches; https://earlywarning.usgs.gov/usraindry/rdreadme.php)
 
-strFigRes = '-r300';
+strFigRes = '-r600';
 
 %Make figures
 blWrtFig = 1;
@@ -66,7 +66,7 @@ else
 end
 
 %Load time invariant data:
-sTInv = ds_ld_fields(sPath, sDs.fldsTInv, sDs.lonDs, sDs.latDs, nan(1,2), nan(1,1));
+sTInv = ds_ld_fields(sPath, sDs.fldsTInv, sDs.lonDs, sDs.latDs, nan(1,2), nan(1,1), 'onefile');
 
 %Find high-res output DEM:
 indHrDem = nan;
@@ -673,16 +673,19 @@ for ii = 1 : sDs.nLp
                 sDs.latDs, sDs.lonDs, strNorm);
 %             [sOutput.(sDs.varDs)(dd,:,:), wgtAvgIn, wgtAvgOut] = norm_grid(squeeze(sTVar{sDs.indDs}.(sDs.varDs)(indDyCurr,:,:)), sTInv{indLrDem}.(varArea), ...
 %                 sOutput.(sDs.varDs)(dd,:,:), sTInv{indHrDem}.(varArea), strNorm);
-
-            if regexpbl(strNorm, 'mult')
-                disp([num2str(yrWork) '-' num2str(mnthWork) '-' ...
-                    num2str(dd) ': (Wgt Avg Out - Wgt Avg In) / Wgt Avg In = ' ...
-                    num2str(round2(100*(wgtAvgOut-wgtAvgIn)/wgtAvgIn,1)) '%.']);
-            elseif regexpbl(strNorm, 'none')
-                disp([num2str(yrWork) '-' num2str(mnthWork) '-' ...
-                    num2str(dd) ': ratio = ' num2str(round2(wgtAvgOut/wgtAvgIn,2)) ]);
+            if ~isempty(wgtAvgIn) && ~isempty(wgtAvgOut)
+                if regexpbl(strNorm, 'mult')
+                    disp([num2str(yrWork) '-' num2str(mnthWork) '-' ...
+                        num2str(dd) ': (Wgt Avg Out - Wgt Avg In) / Wgt Avg In = ' ...
+                        num2str(round2(100*(wgtAvgOut-wgtAvgIn)/wgtAvgIn,1)) '%.']);
+                elseif regexpbl(strNorm, 'none')
+                    disp([num2str(yrWork) '-' num2str(mnthWork) '-' ...
+                        num2str(dd) ': ratio = ' num2str(round2(wgtAvgOut/wgtAvgIn,2)) ]);
+                else
+                    error('methodTlapse:unknownNorm',['The normalization method ' strNorm ' has not been prgorammed for.'])
+                end
             else
-                error('methodTlapse:unknownNorm',['The normalization method ' strNorm ' has not been prgorammed for.'])
+                disp([num2str(yrWork) '-' num2str(mnthWork) ' processed.']);
             end
 
 
@@ -776,7 +779,7 @@ for ii = 1 : sDs.nLp
 
     %%DISPLAY DURATION OF TIME FOR-LOOP HAS BEEN RUNNING
     deltatLoop = toc;
-    perCmplt = 100*ii / numel(sDs.nLp);
+    perCmplt = 100*ii / sDs.nLp;
     disp(['The ' sDs.method ' method has finished processing ' ...
         sDs.varDs ' data for ' mnthDisp ' (' ...
         num2str(round(100*perCmplt)/100) '% complete; elapsed time = ' ...
