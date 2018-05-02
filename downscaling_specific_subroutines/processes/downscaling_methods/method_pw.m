@@ -6,8 +6,6 @@ strNorm = 'none';
 
 wetThresh = 1.016; %Precipitation constituting a dry day (units = mm). Use 0 instead of USGS definition of 0.04 inches; https://earlywarning.usgs.gov/usraindry/rdreadme.php)
 
-strFigRes = '-r600';
-
 %Make figures
 blWrtFig = 1;
 
@@ -17,6 +15,21 @@ if blWrtFig == 1
     if ~exist(foldFig, 'dir')
         mkdir(foldFig)
     end
+    
+    %Plotting settings
+    strFigRes = '-r600';
+    sPlot = struct;
+        sPlot.vis = 'off'; %Figure visibility
+        sPlot.res = strFigRes; %Output PNG res
+        sPlot.sz = [7,5]; %width, height
+        sPlot.ftsz = 12;
+            sPlot.tlfntsz = sPlot.ftsz + 1;
+            sPlot.axfntsz = sPlot.ftsz - 1;
+        %Set line width:
+        sPlot.lnwd = 1.5;
+            sPlot.axlnwd = sPlot.lnwd - 0.5;
+            sPlot.mrkwd = sPlot.lnwd;
+        sPlot.font = 'Arial';
 end
 warning('off', 'MATLAB:LargeImage');
 
@@ -152,20 +165,6 @@ if blWrtFig == 1
     end
     savefig(hFig, [pathFig '.fig']);
     export_fig([pathFig '.png'],'-painters',strFigRes);
-    
-%     %high-res elevation change magnitude
-%     hFig = figure('color', 'white','visible','off'); hold on; 
-%     histogram(sTInv{indHrDem}.(varDeltaMag)(:), 100);
-%     xlabel('Change Between Grid Cells (m)'); ylabel('Occurences');
-%     pathFig = fullfile(foldFig, 'High_res_elevation_change_mag');
-%     if exist([pathFig, '.fig'], 'file')
-%         delete([pathFig, '.fig'])
-%     end
-%     if exist([pathFig, '.png'], 'file')
-%         delete([pathFig, '.png'])
-%     end
-%     savefig(hFig, [pathFig '.fig']);
-%     export_fig([pathFig '.png'],'-painters',strFigRes);
     
     %Difference in SRTM and interpolated ERA DEMs
     hFig = figure('color', 'white','visible','off'); hold on; 
@@ -331,20 +330,8 @@ for ii = 1 : sDs.nLp
         sTVar{sDs.indCm}.(sDs.varDs)(mm,:,:) = squeeze(nanmean(sTVar{sDs.indDs}.(sDs.varDs)(indCurr,:,:), 1));
         
         if blWrtFig == 1
-            hFig = figure('color', 'white','visible','off'); hold on; 
-            hPClr = imagesc(sTVar{sDs.indCm}.(varLon), sTVar{sDs.indCm}.(varLat), double(squeeze(sTVar{sDs.indCm}.(sDs.varDs)(mm,:,:)))); colorbar; 
-            hold off
-            xlabel('Longitude (degrees East)'); ylabel('Latitude (degrees North)');
             pathFig = fullfile(foldFig, [sDs.varDs '_clim_' num2str(min(sDs.yrsBase)) '-' num2str(max(sDs.yrsBase)) '_' num2str(mnthUse(mm))]);
-            if exist([pathFig, '.fig'], 'file')
-                delete([pathFig, '.fig'])
-            end
-            if exist([pathFig, '.png'], 'file')
-                delete([pathFig, '.png'])
-            end
-            savefig(hFig, [pathFig '.fig']);
-        %         export_fig([pathPlot '.eps'],'-painters');
-            export_fig([pathFig '.png'],'-painters',strFigRes);
+            plot_spatial(double(squeeze(sTVar{sDs.indCm}.(sDs.varDs)(mm,:,:))), sPlot, 'Precipitation (mm/day)', 'lat', sTInv{indLrDem}.(varLat), 'lon', sTInv{indLrDem}.(varLon), 'path', pathFig);
         end
         
         %Precipitable water climatology:
@@ -364,19 +351,8 @@ for ii = 1 : sDs.nLp
         clear xx yy
         
         if blWrtFig == 1
-            hFig = figure('color', 'white','visible','off'); hold on; 
-            imagesc(sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), double(squeeze(sTVar{sDs.indCm}.(varPW)(mm,:,:)))); colorbar; 
-            hold off
-            xlabel('Longitude (degrees East)'); ylabel('Latitude (degrees North)');
             pathFig = fullfile(foldFig, [varPW '_wet-day_clim_' num2str(min(sDs.yrsBase)) '-' num2str(max(sDs.yrsBase)) '_' num2str(mnthUse(mm))]);
-            if exist([pathFig, '.fig'], 'file')
-                delete([pathFig, '.fig'])
-            end
-            if exist([pathFig, '.png'], 'file')
-                delete([pathFig, '.png'])
-            end
-            savefig(hFig, [pathFig '.fig']);
-            export_fig([pathFig '.png'],'-painters',strFigRes);
+            plot_spatial(double(squeeze(sTVar{sDs.indCm}.(varPW)(mm,:,:))), sPlot, 'Precipitation (mm/day)', 'lat', sTInv{indLrDem}.(varLat), 'lon', sTInv{indLrDem}.(varLon), 'path', pathFig);
         end
     end
     clear mm
@@ -447,57 +423,17 @@ for ii = 1 : sDs.nLp
             [lrPrGridLon,   lrPrGridLat] = meshgrid(sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat));
             [lrDemGridLon, lrDemGridLat] = meshgrid(sTInv{ indLrDem}.(varLon), sTInv{ indLrDem}.(varLat));
 
-            %PW gradient with arrows:
-            hFig = figure('color', 'white','visible','off'); 
-            hold on; 
-            imagesc(sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), double(qLr)); colorbar; 
-            quiver(lrPrGridLon, lrPrGridLat, ...
-                squeeze(sTVar{sDs.indCm}.(varDeltaXPw)(mm,:,:)), ...
-                squeeze(sTVar{sDs.indCm}.(varDeltaYPw)(mm,:,:)),...
-                'color', 'black'); 
-            quiver(lrDemGridLon, lrDemGridLat, ...
-                sTInv{indLrDem}.(varDeltaX), sTInv{indLrDem}.(varDeltaY), 'color', 'red');
-            text(double(0.5*mean(diff(lrPrGridLon(1,:)))+lrPrGridLon(2,2)), ...
-                double(0.5*mean(diff(lrPrGridLon(:,1)))+lrPrGridLat(2,2)), ...
-                'Black = PW changes; Red = Elevation changes', 'FontSize',14);
-            hold off;
-            xlabel('Longitude (degrees East)'); ylabel('Latitude (degrees North)');
-            pathFig = fullfile(foldFig, [varPW '-DEM_grad_alignment_' num2str(mm)]);
-            if exist([pathFig, '.fig'], 'file')
-                delete([pathFig, '.fig'])
-            end
-            if exist([pathFig, '.png'], 'file')
-                delete([pathFig, '.png'])
-            end
-            savefig(hFig, [pathFig '.fig']);
-        %         export_fig([pathPlot '.eps'],'-painters');
-            export_fig([pathFig '.png'],'-painters',strFigRes);
-
             %Alignment with arrows:
-            hFig = figure('color', 'white','visible','off'); hold on; 
-            imagesc(sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), ...
-                double(squeeze(sTVar{sDs.indCm}.(varDeltaMagPw)(mm,:,:)))); colorbar; 
-            quiver(lrPrGridLon, lrPrGridLat, ...
-                squeeze(sTVar{sDs.indCm}.(varDeltaXPw)(mm,:,:)), ...
-                squeeze(sTVar{sDs.indCm}.(varDeltaYPw)(mm,:,:)), ...
-                'color', 'black'); 
-            quiver(lrDemGridLon, lrDemGridLat, ...
-                sTInv{indLrDem}.(varDeltaX), sTInv{indLrDem}.(varDeltaY), 'color', 'red');
-            text(double(0.5*mean(diff(lrPrGridLon(1,:)))+lrPrGridLon(2,2)), ...
-                double(0.5*mean(diff(lrPrGridLon(:,1)))+lrPrGridLat(2,2)), ...
-                'Black = PW changes; Red = Elevation changes', 'FontSize',14);
-            hold off;
-            xlabel('Longitude (degrees East)'); ylabel('Latitude (degrees North)');
+            pathFig = fullfile(foldFig, [varPW '-DEM_grad_alignment_' num2str(mm)]);
+            plot_spatial(double(qLr), sPlot, 'Alignment between slope and change in PW', 'lat', sTInv{indLrDem}.(varLat), 'lon', sTInv{indLrDem}.(varLon), 'path', pathFig, ...
+                'arrows', lrPrGridLat, lrPrGridLon, squeeze(sTVar{sDs.indCm}.(varDeltaYPw)(mm,:,:)), squeeze(sTVar{sDs.indCm}.(varDeltaXPw)(mm,:,:)), 'black', ...
+                'arrows', lrDemGridLat, lrDemGridLon, sTInv{indLrDem}.(varDeltaY), sTInv{indLrDem}.(varDeltaX), 'red');
+
+            %Change in PW with arrows:
             pathFig = fullfile(foldFig, [varPW '_grad_magnitude_' num2str(mm)]);
-            if exist([pathFig, '.fig'], 'file')
-                delete([pathFig, '.fig'])
-            end
-            if exist([pathFig, '.png'], 'file')
-                delete([pathFig, '.png'])
-            end
-            savefig(hFig, [pathFig '.fig']);
-        %         export_fig([pathPlot '.eps'],'-painters');
-            export_fig([pathFig '.png'],'-painters',strFigRes);
+            plot_spatial(double(squeeze(sTVar{sDs.indCm}.(varDeltaMagPw)(mm,:,:))), sPlot, 'Change in PW (unitless)', 'lat', sTVar{sDs.indDs}.(varLat), 'lon', sTVar{sDs.indDs}.(varLon), 'path', pathFig, ...
+                'arrows', lrPrGridLat, lrPrGridLon, squeeze(sTVar{sDs.indCm}.(varDeltaYPw)(mm,:,:)), squeeze(sTVar{sDs.indCm}.(varDeltaXPw)(mm,:,:)), 'black', ...
+                'arrows', lrDemGridLat, lrDemGridLon, sTInv{indLrDem}.(varDeltaY), sTInv{indLrDem}.(varDeltaX), 'red');
         end
     end
     clear mm
@@ -545,7 +481,7 @@ for ii = 1 : sDs.nLp
             %Scatter plot of regression inputs:
             hFig = figure('color', 'white','visible','off'); hold on; 
             scatter(sTInv{indLrDem}.(varDeltaMag)(indReg), pwDeltaCurr(indReg));
-            xlabel('Change in Elevation (km)'); ylabel('Change in Total Column Water (fraction)');
+            xlabel('Change in Elevation (km)'); ylabel('Change in PW (unitless)');
             pathFig = fullfile(foldFig, ['tcw_elevation_regression_' num2str(min(sDs.yrsBase)) '-' num2str(max(sDs.yrsBase)) '_' num2str(mnthUse(mm))]);
             if exist([pathFig, '.fig'], 'file')
                 delete([pathFig, '.fig'])

@@ -4,8 +4,6 @@ function method_tlapse(sPath, sDs)
 strNorm = 'none';
 % warning('methodTLapse:manualOpts','Set degN and elevHg in systematic/automatic way.')
 
-strFigRes = '-r600';
-
 
 %Make figures
 blWrtFig = 1;
@@ -16,6 +14,21 @@ if blWrtFig == 1
     if ~exist(foldFig, 'dir')
         mkdir(foldFig)
     end
+    
+    %Plotting settings
+    strFigRes = '-r600';
+    sPlot = struct;
+        sPlot.vis = 'off'; %Figure visibility
+        sPlot.res = strFigRes; %Output PNG res
+        sPlot.sz = [7,5]; %width, height
+        sPlot.ftsz = 12;
+            sPlot.tlfntsz = sPlot.ftsz + 1;
+            sPlot.axfntsz = sPlot.ftsz - 1;
+        %Set line width:
+        sPlot.lnwd = 1.5;
+            sPlot.axlnwd = sPlot.lnwd - 0.5;
+            sPlot.mrkwd = sPlot.lnwd;
+        sPlot.font = 'Arial';
 end
 warning('off', 'MATLAB:LargeImage');
 
@@ -133,20 +146,8 @@ end
 
 %Plot elevation histograms
 if blWrtFig == 1
-    hFig = figure('color', 'white','visible','off'); hold on; 
-    hPClrY = imagesc(sTInv{indLrDem}.(varLon), sTInv{indLrDem}.(varLat), double(squeeze(sTInv{indLrDem}.(varDeltaY)))); colorbar; 
-    hold off
-    xlabel('Longitude (degrees East)'); ylabel('Latitude (degrees North)');
-    pathFig = fullfile(foldFig, 'lowres_deltaY');
-    if exist([pathFig, '.fig'], 'file')
-        delete([pathFig, '.fig'])
-    end
-    if exist([pathFig, '.png'], 'file')
-        delete([pathFig, '.png'])
-    end
-    savefig(hFig, [pathFig '.fig']);
-%         export_fig([pathPlot '.eps'],'-painters');
-    export_fig([pathFig '.png'],'-painters',strFigRes);
+    pathFig = fullfile(foldFig, 'low_res_elevation_change_mag');
+    plot_spatial(double(squeeze(sTInv{indLrDem}.(varDeltaY))), sPlot, 'Change in Elevation (m)', 'lat', sTInv{indLrDem}.(varLat), 'lon', sTInv{indLrDem}.(varLon), 'path', pathFig);
     
     hFig = figure('color', 'white','visible','off'); hold on; 
     histogram(sTInv{indLrDem}.(varDeltaMag)(:));
@@ -160,23 +161,6 @@ if blWrtFig == 1
     end
     savefig(hFig, [pathFig '.fig']);
     export_fig([pathFig '.png'],'-painters',strFigRes);
-    
-        %Make figure:
-    
-    
-%     %high-res elevation change magnitude
-%     hFig = figure('color', 'white','visible','off'); hold on; 
-%     histogram(sTInv{indHrDem}.(varDeltaMag)(:), 100);
-%     xlabel('Change Between Grid Cells (m)'); ylabel('Occurences');
-%     pathFig = fullfile(foldFig, 'High_res_elevation_change_mag');
-%     if exist([pathFig, '.fig'], 'file')
-%         delete([pathFig, '.fig'])
-%     end
-%     if exist([pathFig, '.png'], 'file')
-%         delete([pathFig, '.png'])
-%     end
-%     savefig(hFig, [pathFig '.fig']);
-%     export_fig([pathFig '.png'],'-painters',strFigRes);
     
     %Difference in SRTM and interpolated ERA DEMs
     hFig = figure('color', 'white','visible','off'); hold on; 
@@ -314,20 +298,8 @@ for ii = 1 : sDs.nLp
         sTVar{sDs.indCm}.(sDs.varDs)(mm,:,:) = squeeze(nanmean(sTVar{sDs.indDs}.(sDs.varDs)(indCurr,:,:), 1));
         
         if blWrtFig == 1
-            hFig = figure('color', 'white','visible','off'); hold on; 
-            hPClr = imagesc(sTVar{sDs.indCm}.(varLon), sTVar{sDs.indCm}.(varLat), double(squeeze(sTVar{sDs.indCm}.(sDs.varDs)(mm,:,:)))); colorbar; 
-            hold off
-            xlabel('Longitude (degrees East)'); ylabel('Latitude (degrees North)');
             pathFig = fullfile(foldFig, [sDs.varDs '_clim_' num2str(min(sDs.yrsBase)) '-' num2str(max(sDs.yrsBase)) '_' num2str(mnthUse(mm))]);
-            if exist([pathFig, '.fig'], 'file')
-                delete([pathFig, '.fig'])
-            end
-            if exist([pathFig, '.png'], 'file')
-                delete([pathFig, '.png'])
-            end
-            savefig(hFig, [pathFig '.fig']);
-        %         export_fig([pathPlot '.eps'],'-painters');
-            export_fig([pathFig '.png'],'-painters',strFigRes);
+            plot_spatial(double(squeeze(sTVar{sDs.indCm}.(sDs.varDs)(mm,:,:))), sPlot, 'Temperature (degrees C)', 'lat', sTInv{indLrDem}.(varLat), 'lon', sTInv{indLrDem}.(varLon), 'path', pathFig);
         end
     end
     clear mm
@@ -520,19 +492,8 @@ for ii = 1 : sDs.nLp
             lpRtZones(indNoExt  ) = 4; %Extra Northern
             lpRtZones(indSoExt  ) = 5; %Extra Southern
             
-            hFig = figure('color', 'white','visible','off'); hold on; 
-            imagesc(sTInv{indLrDem}.(varLon), sTInv{indLrDem}.(varLat), double(lpRtZones)); colorbar; 
-            hold off
             pathFig = fullfile(foldFig, [sDs.varDs '_lapse-rate-zones']);
-            if exist([pathFig, '.fig'], 'file')
-                delete([pathFig, '.fig'])
-            end
-            if exist([pathFig, '.png'], 'file')
-                delete([pathFig, '.png'])
-            end
-            savefig(hFig, [pathFig '.fig']);
-        %         export_fig([pathPlot '.eps'],'-painters');
-            export_fig([pathFig '.png'],'-painters',strFigRes);
+            plot_spatial(double(lpRtZones), sPlot, 'Lapse Rate Zones', 'lat', sTInv{indLrDem}.(varLat), 'lon', sTInv{indLrDem}.(varLon), 'path', pathFig);
         end
     elseif strcmpi(lapseGrp, 'all')
         %%Calculate monthly lapse rates for all indices together:
@@ -554,20 +515,8 @@ for ii = 1 : sDs.nLp
     
     if blWrtFig == 1
         for mm = 1 : 12
-            hFig = figure('color', 'white','visible','off'); hold on; 
-            imagesc(sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), double(squeeze(lrLpsMnth(mm,:,:)))); colorbar; 
-            hold off
-            xlabel('Longitude (degrees East)'); ylabel('Latitude (degrees North)');
             pathFig = fullfile(foldFig, [sDs.varDs '_lr_lapse-rate_' num2str(mm)]);
-            if exist([pathFig, '.fig'], 'file')
-                delete([pathFig, '.fig'])
-            end
-            if exist([pathFig, '.png'], 'file')
-                delete([pathFig, '.png'])
-            end
-            savefig(hFig, [pathFig '.fig']);
-        %         export_fig([pathPlot '.eps'],'-painters');
-            export_fig([pathFig '.png'],'-painters',strFigRes);
+            plot_spatial(double(squeeze(lrLpsMnth(mm,:,:)))*1000, sPlot, 'Lapse Rate (degrees C / km)', 'lat', sTInv{indLrDem}.(varLat), 'lon', sTInv{indLrDem}.(varLon), 'path', pathFig);
         end
         clear mm
     end
