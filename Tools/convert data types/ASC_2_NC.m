@@ -260,9 +260,12 @@ for ii = 1 : length(metaData(:,1))
     ncwriteatt(pathNc,clmVar,metaData{ii,1},metaData{ii,2}) %'/' indicates global attribute
 end
 
-%%Create and Write Variables to NetCDF File:
-%Time:
+%Sort time:
 vecTime = days_since([1900,1,1], [aryTime(:,1), aryTime(:,2), round(aryTime(:,3)/2)], strCal);
+[vecTime, srtTime] = sort(vecTime);
+filesTS = filesTS(srtTime);
+
+%%Create and Write Variables to NetCDF File:
 ncwrite(pathNc,'time',vecTime);
 
 %Longitude:
