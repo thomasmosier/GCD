@@ -158,11 +158,7 @@ stnExclude = []; %GHCN station numbers to exclude from
 shepard = 0;    %0 = Don't implement Shepard's bias correction
                 %1 = Do implement (this adds significant time to the 
                 %downscaling process) 
-
-%If snowfall calculated, use these parameters:
-snowMod = 'ramp';
-snowPrm = [-7.9, 5.2];
-                
+             
                 
 %%IMPLEMENTATION CODE (DO NOT EDIT):     
 %LOAD MODULES:
