@@ -79,6 +79,14 @@ for kk = 1 : nVar
         metVar = 'tmp';
         units = 'celsius';
         sMeta.currVar = metVar;
+    elseif regexpbl(dirTs{kk},'tmx')
+        metVar = 'tmx';
+        units = 'celsius';
+        sMeta.currVar = metVar;
+    elseif regexpbl(dirTs{kk},'tmn')
+        metVar = 'tmn';
+        units = 'celsius';
+        sMeta.currVar = metVar;
     elseif regexpbl(dirTs{kk},'pre')
         units = 'mm';
         metVar = 'pre';

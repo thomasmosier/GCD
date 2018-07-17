@@ -25,6 +25,7 @@ for ii = numel(sDs.fldsTVar) : -1 : 1
 end
 
 indDsIn = sDs.indDs;
+fldsIn = sDs.fldsTVar;
 
 %Set name of data product
 strData = sPath.(['nm_' sDs.fldsTVar{indDsIn}]){1};
@@ -52,23 +53,32 @@ else
         'been programmed for. Determine which delta method to use.']);
 end
 
+
 tic;
 for ii = 1 : sDs.nLp
     if regexpbl(sDs.timestep, {'month', 'mnth'})
         mnthCurr = sDs.mnthsDs(ii);
     end
 
+    
     %%LOAD INPUTS:
-        indDsOrg = sDs.indDs;
-    [sTVar, indNew] = ds_ld_fields(sPath, sDs.fldsTVar, sDs.lonDs, sDs.latDs, sDs.yrsLd, mnthCurr, 'stitch', 1, 'indice', [sDs.indDs(:); sDs.indRef(:)], 'resample', sDs.resample, 'frame', 2);
-    %Update 'indDsIn' based on change in indDs
-        sDs.indDs = indNew(1);
-        sDs.indRef = indNew(2:end);
-        indDelta = (sDs.indDs - indDsOrg);
-        indDsIn = indDsIn + indDelta;
+    [sTVar, ~, sDs.fldsTVar] = ds_ld_fields(sPath, fldsIn, sDs.lonDs, sDs.latDs, sDs.yrsLd, mnthCurr, 'stitch', 1, 'indice', [sDs.indDs(:); sDs.indRef(:)], 'resample', sDs.resample, 'frame', 2);
+    % [sTVar, indNew] = ds_ld_fields(sPath, fldsIn, sDs.lonDs, sDs.latDs, sDs.yrsLd, mnthCurr, 'stitch', 1, 'indice', [sDs.indDs(:); sDs.indRef(:)], 'resample', sDs.resample, 'frame', 2);
+    %Update indices of data to use
+    for zz = 1 : numel(sDs.fldsTVar)
+        if regexpbl(sDs.fldsTVar{zz}, 'sim')
+            sDs.indDs = zz;
+        elseif regexpbl(sDs.fldsTVar{zz}, 'ref')
+            sDs.indRef = zz;
+        end
+    end
 
-    if ~regexpbl(sTVar{indDsIn}.timestep, {'month', 'mnth'})
-        error('methodDelta:dataWrongTimestep',['The data timestep is ' sTVar{indDsIn}.timestep ...
+%         indDelta = (sDs.indDs - indDsIn);
+%         indDsIn = indDsIn + indDelta;
+    
+    if ~regexpbl(sTVar{sDs.indDs}.timestep, {'month', 'mnth'})
+        sTVar{sDs.indDs}.timestep = 'monthly';
+        warning('methodDelta:dataWrongTimestep',['The data timestep is ' sTVar{sDs.indDs}.timestep ...
         ' but the Delta method should only be used with a monthly timestep.'])
     end
 
@@ -103,12 +113,13 @@ for ii = 1 : sDs.nLp
         end
         clear ll
     
-        [sTVar{end+1}, bcMethod] = bc_switch(sTVar, indDsIn, sDs);
-        sDs.fldsTVar{numel(sTVar(:))} = [sDs.fldsTVar{indDsIn} '_bc-' bcMethod];
-        sDs.indDs = numel(sDs.fldsTVar);
-%         sTVar{indDsIn} = bc_switch(sTVar, sDownscale, sMeta);
+        [sTVar{end+1}, bcMethod] = bc_switch(sTVar, sDs.indDs, sDs);
+
+        sDs.fldsTVar{numel(sTVar(:))} = [sDs.fldsTVar{sDs.indDs} '_bc-' bcMethod];
+        sDs.indDs = numel(sTVar(:));
+%         sTVar{sDs.indDs} = bc_switch(sTVar, sDownscale, sMeta);
     else 
-        sDs.indDs = indDsIn;
+        sDs.indDs = sDs.indDs;
     end
     
     %Create input grid
@@ -211,9 +222,9 @@ for ii = 1 : sDs.nLp
                     if isfield(sDsClm, varDate)
                         sDsClm.(varDate) = nan(1,2);
                     end
-        
+
                 sDsClm.(sDs.varDs) = nanmean(sTsOut.(sDs.varDs)(sTsOut.date(:,1) >= min(sDs.yrsDs) & sTsOut.date(:,1) <= max(sDs.yrsDs),:,:), 1);
-                ds_wrt_outputs(sDsClm, 'dsclim', sDs, sPath, 'folder', fullfile('dsclim')); 
+                ds_wrt_outputs(sDsClm, 'dsclim', sDs, sPath, 'folder', 'dsclim', 'file', ['dsclim_' num2str(sDs.yrsBase(1)) 'thru' num2str(sDs.yrsBase(end)) '_' strMnth]); 
             end
         end
     end

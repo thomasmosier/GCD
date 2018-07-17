@@ -51,27 +51,45 @@ latN = crd(4);
 startYear = dates(1);
 endYear = dates(2);
 
-if regexpi(metVar,'pre')    %Presumes all GHCN data are in subfolder 'GHCN data' within script folder.
+
+%Find GHCN files to load
+%Presumes all GHCN data are in subfolder 'GHCN data' within script folder.
+if regexpbl(metVar,'pre')    
     fidGhcnStn = fopen(which('v2.prcp.inv'));   %Stn ID (i11), Stn Name (a20), country (a10), latitude (f7.2), longitude (f8.2), and elevation (m) (i5)
-    if ~isempty(regexpi(dataCon, 'adj'))
+    if ~isempty(regexpbl(dataCon, 'adj'))
         fidGhcnData = fopen(which('v2.prcp_adj'));
     elseif regexpbl(dataCon,{'org','orig','non'})
         fidGhcnData = fopen(which('v2.prcp'));
     else
-        error('Unknown data control type.');
+        error('GhcnFind:UnknownDataType', ['GHCN type ' dataCon ' has not been programmed for.']);
     end
-elseif regexpi(metVar,'tmp')
-    if regexpi(dataCon, 'adj')
-        fidGhcnData = fopen(which('ghcnm.tavg.v3.2.0.20120913.qca.dat'));
-        fidGhcnStn = fopen(which('ghcnm.tavg.v3.2.0.20120913.qca.inv'));%Stn ID, Lat, Lon, Elevation
+elseif regexpbl(metVar, {'tmp','tmn','tmx'})
+    if regexpbl(metVar, 'tmp')
+        ghcnTmpRt = 'ghcnm.tavg.v3.3.0.20180704.';
+    elseif regexpbl(metVar, 'tmn')
+        ghcnTmpRt = 'ghcnm.tmin.v3.3.0.20180630.';
+    elseif regexpbl(metVar, 'tmx')
+        ghcnTmpRt = 'ghcnm.tmax.v3.3.0.20180630.';
+    end
+    
+    if regexpbl(dataCon, 'adj')
+        fidGhcnData = fopen(which([ghcnTmpRt, 'qca.dat']));
+        fidGhcnStn = fopen(which([ghcnTmpRt, 'qca.inv']));%Stn ID, Lat, Lon, Elevation
     elseif regexpbl(dataCon,{'org','orig','non'})
-        fidGhcnData = fopen(which('ghcnm.tavg.v3.2.0.20120913.qcu.dat'));
-        fidGhcnStn = fopen(which('ghcnm.tavg.v3.2.0.20120913.qcu.inv'));%Stn ID, Lat, Lon, Elevation
+        fidGhcnData = fopen(which([ghcnTmpRt, 'qcu.dat']));
+        fidGhcnStn = fopen(which([ghcnTmpRt, 'qcu.inv']));%Stn ID, Lat, Lon, Elevation
     else
-        error('Unknown data control type.');
+        error('GhcnFind:UnknownDataType',['GHCN type ' dataCon ' has not been programmed for.']);
     end
 else
-   error('Invalid meteorological variable chosen.'); 
+   error('GhcnFind:UnknownMetVar',['GHCN meteorological variable ' metVar ' has not been programmed for.']);
+end
+
+if isequal(fidGhcnData, -1)
+    error('ghcnFind:dataFileNotFound','The GHCN data file was not found. Check file naming in this function and GHCN files in search path.')
+end
+if isequal(fidGhcnStn, -1)
+    error('ghcnFind:stnFileNotFound','The GHCN stn file was not found. Check file naming in this function and GHCN files in search path.')
 end
 
 %PROCESS ALL STATION METADATA:
@@ -82,11 +100,11 @@ stnMatTemp = cell2mat(stnCellRaw{1});
     stnMat = nan(length(stnMatTemp),4); %Initialize
 stnMat(:,1) = str2num(stnMatTemp(:,1:11));
     
-if regexpi(metVar,'pre')      
+if regexpbl(metVar,'pre')      
     stnMat(:,2) = str2num(stnMatTemp(:,43:49));
     stnMat(:,3) = str2num(stnMatTemp(:,50:57));
     stnMat(:,4) = str2num(stnMatTemp(:,59:62));
-elseif regexpi(metVar,'tmp') 
+elseif regexpbl(metVar, {'tmp','tmn','tmx'}) 
     stnMat(:,2) = str2num(stnMatTemp(:,13:20));
     stnMat(:,3) = str2num(stnMatTemp(:,22:30));
     stnMat(:,4) = str2num(stnMatTemp(:,32:37));
@@ -98,15 +116,17 @@ dataCellRaw = textscan(fidGhcnData,'%s','Delimiter','');
 fclose(fidGhcnData);
 dataMatTemp = cell2mat(dataCellRaw{1});
     clear dataCellRaw
-    dataMat = nan(length(dataMatTemp),14);   %Initialize
+%Initialize
+dataMat = nan(length(dataMatTemp),14);  
+%Assign
 dataMat(:,1) = str2num(dataMatTemp(:,1:11));
 
-if regexpi(metVar,'pre')   
+if regexpbl(metVar,'pre')   
     dataMat(:,2) = str2num(dataMatTemp(:,13:16));
     jj = 17;
     dj = 5;
     dataScale = 10;  %Data is given in tenths of milimeters
-elseif regexpi(metVar,'tmp') 
+elseif regexpbl(metVar, {'tmp','tmn','tmx'}) 
     dataMat(:,2) = str2num(dataMatTemp(:,12:15));
     jj = 20;
     dj = 8;
@@ -120,8 +140,8 @@ end
     clear dataMatTemp
 dataMat(dataMat == -9999/dataScale) = nan;
 
-if regexpi(metVar,'pre')  
-dataMat(dataMat == -8888/dataScale) = 0;
+if regexpbl(metVar,'pre')  
+    dataMat(dataMat == -8888/dataScale) = 0;
 end
 
 indRow = find( stnMat(:,2) > latS & stnMat(:,2) < latN & stnMat(:,3) > lonW & stnMat(:,3) < lonE);
@@ -142,7 +162,3 @@ for ii = 1 : length(useStn(:,1))
     end
 end
 useData(kk:end,:) = [];
-
-
-
-

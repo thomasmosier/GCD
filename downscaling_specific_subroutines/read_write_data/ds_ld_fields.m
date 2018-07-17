@@ -32,7 +32,6 @@ varTime = 'time';
 varDate = 'date';
 
 
-
 for ii = numel(fldsLd) : -1 : 1
     if regexpbl(fldsLd{ii}, 'bc') && ~regexpbl(fldsLd{ii}, '4bc') 
         fldsLd(ii) = [];
@@ -332,4 +331,14 @@ end
 
 if nargout > 1
     varargout{1} = indiceIn;
+    if nargout > 2
+        fldsTemp = cell(numel(sData(:)), 1);
+
+        for ii = 1 : numel(sData(:))
+            if isfield(sData{ii}, 'description')
+                fldsTemp{ii} = sData{ii}.('description');
+            end
+        end
+        varargout{2} = fldsTemp;
+    end
 end

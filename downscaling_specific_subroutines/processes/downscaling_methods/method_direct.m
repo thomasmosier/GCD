@@ -17,6 +17,7 @@ else
 end
 
 indDsIn = sDs.indDs;
+fldsIn = sDs.fldsTVar;
 
 %Loop over months (or lump all months together if daily)
 if regexpbl(sDs.timestep, {'month', 'mnth'})
@@ -27,6 +28,7 @@ else
     warning('methodDirect:unknownTimestep',['The timestep is ' ...
         sDs.timestep ', which has not been programmed for.']);
 end
+
 
 tic;
 for ii = 1 : sDs.nLp
@@ -39,13 +41,16 @@ for ii = 1 : sDs.nLp
     end
     
     %%LOAD INPUTS:
-        indDsOrg = sDs.indDs;
-    [sTVar, indNew] = ds_ld_fields(sPath, sDs.fldsTVar, sDs.lonDs, sDs.latDs, sDs.yrsLd, mnthCurr, 'stitch', 1, 'indice', [sDs.indDs(:); sDs.indRef(:)], 'resample', sDs.resample);
-    %Update 'indDsIn' based on change in indDs
-        sDs.indDs = indNew(1);
-        sDs.indRef = indNew(2:end);
-        indDelta = (sDs.indDs - indDsOrg);
-        indDsIn = indDsIn + indDelta;
+    [sTVar, ~, sDs.fldsTVar] = ds_ld_fields(sPath, fldsIn, sDs.lonDs, sDs.latDs, sDs.yrsLd, mnthCurr, 'stitch', 1, 'indice', [sDs.indDs(:); sDs.indRef(:)], 'resample', sDs.resample, 'frame', 2);
+%     [sTVar, indNew] = ds_ld_fields(sPath, sDs.fldsTVar, sDs.lonDs, sDs.latDs, sDs.yrsLd, mnthCurr, 'stitch', 1, 'indice', [sDs.indDs(:); sDs.indRef(:)], 'resample', sDs.resample);
+    %Update indices of data to use
+    for zz = 1 : numel(sDs.fldsTVar)
+        if regexpbl(sDs.fldsTVar{zz}, 'sim')
+            sDs.indDs = zz;
+        elseif regexpbl(sDs.fldsTVar{zz}, 'ref')
+            sDs.indRef = zz;
+        end
+    end
 
     %BIAS CORRECT INPUT
     if ~isempty(sDs.indRef) && ~isnan(sDs.indRef) 
