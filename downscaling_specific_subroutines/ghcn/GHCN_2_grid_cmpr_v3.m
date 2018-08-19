@@ -402,7 +402,7 @@ for kk = 1 : nVar
                 if jj == 8 && numel(find(~isnan(suffData) == 1)) == 0
                     warning('GHCN_2_grid_cmpr:needMoreData',['There are no '...
                         'stations with sufficient data to do CDF analysis '...
-                        'for the current gridded data.']);
+                        'for the current gridded data. Other analysis may still be conducted.']);
                     return
                 end
             end

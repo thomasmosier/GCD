@@ -37,11 +37,11 @@ clc         %Clears all existing text in the command window.
 
 %%USER INPUTS:
 %Select the time period to downscale:
-simPeriod = 'projection';	%Either 'historic' (for historical downscaling) or 
+simPeriod = 'historic';	%Either 'historic' (for historical downscaling) or 
                             %'projection' (for future projections)
 
 %Select the years and months to downscale:
-yrsDs = [2021, 2050]; %Ordered vector stating the first and last year of data 
+yrsDs = [1986, 2000]; %Ordered vector stating the first and last year of data 
                     %to be downscaled.
                     
 %List of all months to be processed 
@@ -60,7 +60,7 @@ metVarDs = {'pre'};   %Cell array of either/cobmination (Syntax for multiple is 
                     %'tmx' = monthly mean of maximum daily temperatures
 
 %Downscaling _ bias correction:
-methodDs = 'eQM_delta';
+methodDs = 'delta';
     %DOWNSCALING
     %'tlapse' = temperature lapse rate downscaling
     %'pw' = empirical relationship between changes in precipitable water
@@ -130,6 +130,7 @@ ghcnStats = {'joint','adj','non','adj_cdf','non_cdf'};
                                     %calculate stats in joint probability 
                                     %space (pre and tmp must both be 
                                     %simultaneously downscaled).
+                                    
                             
                                                      
 %Anomaly interpolation method:

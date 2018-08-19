@@ -189,29 +189,24 @@ for ii = 1 : sDs.nLp
     if ~isempty(sDs.wrtOut)
         ds_wrt_inputs(sTVar, sDs, sPath);
         
-        if mnthCurr < 10
-            strMnth = ['0' num2str(mnthCurr)];
-        else
-        	strMnth = num2str(mnthCurr);
-        end
-        
         %Write outputs
         for kk = 1 : numel(sDs.wrtOut(:))
             if regexpbl(sDs.wrtOut{kk}, {'ds','ts'}, 'and') || regexpbl(sDs.wrtOut{kk}, {'downscale','ts'}, 'and')
                 %Make file and path names:
-                fileCurr = [sDs.varDs '_' sDs.timestep '_' strData '-ds-' sDs.region '_delta_intrp-' sDs.intrp '_' ...
-                    num2str(min(sDs.yrsDs)) strMnth '01' '-' ...
-                    num2str(max(sDs.yrsDs)) strMnth num2str(eomday(max(sDs.yrsDs), mnthCurr))];
+                fileDs = ds_output_name(sDs, strData, mnthCurr, 'ds');
+%                 fileCurr = [sDs.varDs '_' sDs.timestep '_' strData '-ds-' sDs.region '_delta_intrp-' sDs.intrp '_' ...
+%                     num2str(min(sDs.yrsDs)) strMnth '01' '-' ...
+%                     num2str(max(sDs.yrsDs)) strMnth num2str(eomday(max(sDs.yrsDs), mnthCurr))];
 
-                ds_wrt_outputs(sTsOut, 'delta', sDs, sPath, 'file', fileCurr, 'yrs', sDs.yrsDs);
+                ds_wrt_outputs(sTsOut, 'delta', sDs, sPath, 'file', fileDs, 'yrs', sDs.yrsDs);
             elseif regexpbl(sDs.wrtOut{kk}, {'hr','anom'}, 'and')
-                ds_wrt_outputs(sAnomOut, 'hranom', sDs, sPath, 'folder', fullfile('hranom'), 'yrs', sDs.yrsDs);
+                ds_wrt_outputs(sAnomOut, 'hranom', sDs, sPath, 'yrs', sDs.yrsDs);
             elseif regexpbl(sDs.wrtOut{kk}, {'lr','anom'}, 'and')
-                ds_wrt_outputs(sAnomIn, 'lranom', sDs, sPath, 'folder', fullfile('lranom'), 'yrs', sDs.yrsDs);
+                ds_wrt_outputs(sAnomIn, 'lranom', sDs, sPath, 'yrs', sDs.yrsDs);
             elseif regexpbl(sDs.wrtOut{kk}, {'in','clim'}, 'and')
-                ds_wrt_outputs(sSimClm, 'inputclim', sDs, sPath, 'folder', fullfile('inputclim'));
+                ds_wrt_outputs(sSimClm, 'inputclim', sDs, sPath);
             elseif regexpbl(sDs.wrtOut{kk}, {'ref','clim'}, 'and')
-                ds_wrt_outputs(sSimClm, 'refclim', sDs, sPath, 'folder', fullfile('refclim'));    
+                ds_wrt_outputs(sSimClm, 'refclim', sDs, sPath, 'folder');    
             elseif regexpbl(sDs.wrtOut{kk}, {'ds','clim'}, 'and')
                 sDsClm = sSimClm;
                     sDsClm.(varLon) = sTsOut.(varLon);
@@ -222,9 +217,10 @@ for ii = 1 : sDs.nLp
                     if isfield(sDsClm, varDate)
                         sDsClm.(varDate) = nan(1,2);
                     end
-
                 sDsClm.(sDs.varDs) = nanmean(sTsOut.(sDs.varDs)(sTsOut.date(:,1) >= min(sDs.yrsDs) & sTsOut.date(:,1) <= max(sDs.yrsDs),:,:), 1);
-                ds_wrt_outputs(sDsClm, 'dsclim', sDs, sPath, 'folder', 'dsclim', 'file', ['dsclim_' num2str(sDs.yrsBase(1)) 'thru' num2str(sDs.yrsBase(end)) '_' strMnth]); 
+                
+                fileClim = ds_output_name(sDs, strData, mnth, 'clim');
+                ds_wrt_outputs(sDsClm, 'dsclim', sDs, sPath, 'folder', 'dsclim', 'file', fileClim); 
             end
         end
     end

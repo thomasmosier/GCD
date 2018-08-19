@@ -59,6 +59,15 @@ for ii = 1 : numel(fldsLd)
     end
     sData{ii}.(varName) = fldsLd{ii};
     
+    %Check that data for all years loaded:
+    if isfield(sData{ii}, varDate)
+        yrsPresent = unique(sData{ii}.(varDate)(:,1));
+        if numel(yrsPresent) ~= max(yrsLd) - min(yrsLd) + 1
+           warning('dsLdFields:diffNumberYrs', ['The number of years loaded '...
+               'does not equal the number requested for ' sPath.(fldsLd{ii}) '.']); 
+        end
+    end
+    
     warning('off', 'MATLAB:mode:EmptyInput')
     if isfield(sData{ii}, 'date')
         if all(ismember(sData{ii}.('date')(:,2), mnthsLd) ~= 0) && (numel(sData{ii}.('date')(1,:)) == 2 || all(sData{ii}.('date')(:,3) == sData{ii}.('date')(1,3)))

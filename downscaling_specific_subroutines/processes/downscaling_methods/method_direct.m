@@ -86,23 +86,18 @@ for ii = 1 : sDs.nLp
     
     %Write inputs and outputs:
     if ~isempty(sDs.wrtOut)
-%         ds_wrt_inputs(sTVar, sDs, sPath);
-        
-        if mnthCurr < 10
-            strMnth = ['0' num2str(mnthCurr)];
-        else
-        	strMnth = num2str(mnthCurr);
-        end
         strData = sPath.(['nm_' sDs.fldsTVar{indDsIn}]){1};
         
         for kk = 1 : numel(sDs.wrtOut(:))
             if regexpbl(sDs.wrtOut{kk}, {'ds','ts'}, 'and') || regexpbl(sDs.wrtOut{kk}, {'downscale','ts'}, 'and')
-                %Make file and path names:
-                fileCurr = [sDs.varDs '_' sDs.timestep '_' strData '-ds-' sDs.region '_intrp-' sDs.intrp '_' ...
-                    num2str(min(sDs.yrsDs)) strMnth '01' '-' ...
-                    num2str(max(sDs.yrsDs)) strMnth num2str(eomday(max(sDs.yrsDs), mnthCurr))];
+                 %Make file and path names:
+                fileDs = ds_output_name(sDs, strData, mnthCurr, 'ds');
 
-                ds_wrt_outputs(sTsOut, 'ds', sDs, sPath, 'file', fileCurr, 'folder', 'ts', 'yrs', sDs.yrsDs);
+                ds_wrt_outputs(sTsOut, 'delta', sDs, sPath, 'file', fileDs, 'yrs', sDs.yrsDs);
+            elseif regexpbl(sDs.wrtOut{kk}, {'in','clim'}, 'and')
+                ds_wrt_outputs(sSimClm, 'inputclim', sDs, sPath);
+            elseif regexpbl(sDs.wrtOut{kk}, {'ref','clim'}, 'and')
+                ds_wrt_outputs(sSimClm, 'refclim', sDs, sPath, 'folder'); 
             elseif regexpbl(sDs.wrtOut{kk}, {'ds','clim'}, 'and')
                 %Create interpolated climatology
                 sDsClm = sTsOut;
@@ -115,10 +110,8 @@ for ii = 1 : sDs.nLp
                     end
  
                 %Make file and path names:
-                fileCurr = [sDs.varDs '_' strData '-intrpclim-' sDs.region '_intrp-' sDs.intrp '_' ...
-                    num2str(min(sDs.yrsDs)) 'thru' ...
-                    num2str(max(sDs.yrsDs)) '_' strMnth];
-                ds_wrt_outputs(sDsClm, 'intrp_clim', sDs, sPath, 'folder', 'intrp_clim', 'file', fileCurr); 
+                fileClim = ds_output_name(sDs, strData, mnth, 'clim');
+                ds_wrt_outputs(sDsClm, 'dsclim', sDs, sPath, 'folder', 'dsclim', 'file', fileClim); 
             end
         end
         clear kk

@@ -1,4 +1,4 @@
-function ds_wrt_outputs(sTsOut, type, sDs, sPath, varargin)
+function ds_wrt_outputs(sTsOut, typ, sDs, sPath, varargin)
 
 foldRt = '';
 fileRt = '';
@@ -6,20 +6,22 @@ yrs = nan(1,2);
 var = sDs.varDs;
 if ~isempty(varargin(:))
     for ii = 1 : numel(varargin(:))
-       if strcmpi(varargin{ii}, 'file')
-           fileRt = varargin{ii+1};
-       elseif strcmpi(varargin{ii}, 'fold') || strcmpi(varargin{ii}, 'folder')
-           foldRt = varargin{ii+1};
-       elseif strcmpi(varargin{ii}, 'yrs') || strcmpi(varargin{ii}, 'years')
-           yrs = varargin{ii+1};
-       elseif strcmpi(varargin{ii}, 'var')
-           var = varargin{ii+1};
-       end
+        if ischar(varargin{ii})
+           if strcmpi(varargin{ii}, 'file')
+               fileRt = varargin{ii+1};
+           elseif strcmpi(varargin{ii}, 'fold') || strcmpi(varargin{ii}, 'folder')
+               foldRt = varargin{ii+1};
+           elseif strcmpi(varargin{ii}, 'yrs') || strcmpi(varargin{ii}, 'years')
+               yrs = varargin{ii+1};
+           elseif strcmpi(varargin{ii}, 'var')
+               var = varargin{ii+1};
+           end
+        end
     end
 end
 
 %Determine if main output:
-if regexpbl(type, {'output', 'anom', 'ds','delta','extract','analysis'}) || regexpbl(type, {'in', 'clim'}, 'and')
+if regexpbl(typ, {'output', 'ds','delta','extract','analysis'})
     blMainOut = 1;
 else
     blMainOut = 0;
@@ -32,7 +34,10 @@ if ~isempty(foldRt)
 elseif blMainOut == 1
     foldCurr = sDs.pathOut;
 else
-    foldCurr = fullfile(sDs.pathOut, type);
+    foldCurr = fullfile(sPath.output, 'extras', typ);
+    if ~exist(foldCurr, 'dir')
+        mkdir(foldCurr);
+    end
 end
 
 %Set file:
@@ -41,10 +46,11 @@ if ~isempty(fileRt)
 elseif blMainOut
     nmOut = ds_file_nm(sPath, sDs, sDs.indDs);
     
-    fileCurr = [var, '_', nmOut, '_', type, '_', sDs.region];
+    fileCurr = [var, '_', nmOut, '_', typ, '_', sDs.region];
 else
-    fileCurr = [var, '_', type, '_', sDs.region];
+    fileCurr = [var, '_', typ, '_', sDs.region];
 end
+
 
 %Crop years (if option selected)
 if all(~isnan(yrs))
@@ -75,5 +81,35 @@ if ~isempty(indLonOut) && ~isempty(indLatOut)
     sTsOut.(varLon) = sTsOut.(varLon)(indLonOut);
 end
 
+
+if iscell(fileCurr)
+    if numel(fileCurr(:)) == 1
+        blWrt1 = 1;
+        fileCurr = fileCurr{1};
+    else
+        blWrt1 = 0;
+        if numel(fileCurr(:)) ~= numel(sTsOut.(var)(:,1,1))
+            error('dsWrtOutputs:lengthMismatch',['There are ' ...
+                num2str(numel(fileCurr(:))) ' output files and ' ...
+                num2str(numel(sTsOut.(var)(:,1,1))) ' time slices. The two should be the same.'])
+        end
+    end
+else
+    blWrt1 = 1;
+end
+
 %Write to file
-write_geodata_v2(fullfile(foldCurr, fileCurr), sTsOut, sDs.wrtPrec, sDs.wrtFmt, 'var', var);
+if blWrt1 == 1
+    write_geodata_v2(fullfile(foldCurr, fileCurr), sTsOut, sDs.wrtPrec, sDs.wrtFmt, 'var', var);
+else
+    strDisp = '';
+    for ii = 1 : numel(fileCurr(:))
+        sTsOutCurr = sTsOut;
+        sTsOutCurr.(var) =  squeeze(sTsOutCurr.(var)(ii,:,:));
+        write_geodata_v2(fullfile(foldCurr, fileCurr{ii}), sTsOut, sDs.wrtPrec, sDs.wrtFmt, 'var', var, strDisp);
+        
+        if ii == 1
+            strDisp = 'no_disp';
+        end
+    end
+end
