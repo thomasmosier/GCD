@@ -99,7 +99,7 @@ writeType = 'ascii';    %'ascii' = individual ascii files (ESRI format)
                         %'netCDF' = A single netCDF file (Analogous to CMIP5 format)
 %Determine which data to print to file ('writeOpts' is a cell array that 
 %can contain any permutation of the below options): 
-writeOpts = {'ds_ts','hist_sim','hist_reg','anomaly_lr','anomaly_hr','cdf'};   
+writeOpts = {'ds_ts', 'hist_sim', 'hist_reg', 'anomaly_lr', 'anomaly_hr', 'cdf'};
 %Options for data to write:
 %'ds_ts' - print high-resolution monthly downscaled data
 %'input_clim' - print low-res climatology from time-series

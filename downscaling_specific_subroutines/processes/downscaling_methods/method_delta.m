@@ -219,7 +219,7 @@ for ii = 1 : sDs.nLp
                     end
                 sDsClm.(sDs.varDs) = nanmean(sTsOut.(sDs.varDs)(sTsOut.date(:,1) >= min(sDs.yrsDs) & sTsOut.date(:,1) <= max(sDs.yrsDs),:,:), 1);
                 
-                fileClim = ds_output_name(sDs, strData, mnth, 'clim');
+                fileClim = ds_output_name(sDs, strData, mnthCurr, 'clim');
                 ds_wrt_outputs(sDsClm, 'dsclim', sDs, sPath, 'folder', 'dsclim', 'file', fileClim); 
             end
         end
