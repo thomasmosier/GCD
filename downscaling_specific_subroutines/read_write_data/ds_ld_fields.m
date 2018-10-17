@@ -99,7 +99,7 @@ for ii = 1 : numel(fldsLd)
     warning('on', 'MATLAB:mode:EmptyInput')
     
     %Convert units:
-    sData{ii} = struct_2_standard_units(sData{ii}, varLd, sData{ii}.timestep);
+%     sData{ii} = struct_2_standard_units(sData{ii}, varLd, sData{ii}.timestep);
     
     if ~isempty(unitsTable)
         nmAtt = ['att' varLd];

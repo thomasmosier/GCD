@@ -29,6 +29,7 @@ if blWrtFig == 1
 end
 warning('off', 'MATLAB:LargeImage');
 
+varNm = 'Name';
 
 %Load station coordinate file:
 if numel(sDs.fldsTInv(:)) == 1
@@ -40,28 +41,41 @@ if numel(sDs.fldsTInv(:)) == 1
         raw(cellfun(@(x) ~isempty(x) && isnumeric(x) && isnan(x),raw)) = {''};
 
         sCrd = struct;
-        for ii = 1 : numel(crdFlds)
-%             sCrd = setfield(sCrd, crdFlds{ii}, raw(:,ii));
-            if ischar(raw(1,ii)) || iscell(raw(1,ii))
-                if iscell(raw{1,ii})
-                    colTemp = cell(numel(raw(:,ii)), 1);
-                    for jj = 1 : numel(raw(:,ii))
-                        colTemp{jj} = char(raw{jj,ii});
+        if any(strcmpi(crdFlds, varLat)) && any(strcmpi(crdFlds, varLon)) && any(strcmpi(crdFlds, varNm))
+            indLat = find(strcmpi(crdFlds, varLat) == 1);
+            indLon = find(strcmpi(crdFlds, varLon) == 1);
+            indNm  = find(strcmpi(crdFlds,  varNm) == 1);
+            
+            sCrd(:).(varLat) = cell2mat(raw(:,indLat));
+            sCrd(:).(varLon) = cell2mat(raw(:,indLon));
+            sCrd(:).( varNm) = raw(:, indNm);
+            
+            crdFlds = {varNm, varLat, varLon};
+            nmStn = varNm;
+        else
+            for ii = 1 : numel(crdFlds)
+    %             sCrd = setfield(sCrd, crdFlds{ii}, raw(:,ii));
+                if ischar(raw(1,ii)) || iscell(raw(1,ii))
+                    if iscell(raw{1,ii})
+                        colTemp = cell(numel(raw(:,ii)), 1);
+                        for jj = 1 : numel(raw(:,ii))
+                            colTemp{jj} = char(raw{jj,ii});
+                        end
+                        sCrd(:).(crdFlds{ii}) = colTemp;
+                    elseif isnumeric(raw{1,ii})
+                        sCrd(:).(crdFlds{ii}) = cell2mat(raw(:,ii));
+                    else
+                        sCrd(:).(crdFlds{ii}) = raw(:,ii);
                     end
-                    sCrd(:).(crdFlds{ii}) = colTemp;
-                elseif isnumeric(raw{1,ii})
+                elseif isnumeric(raw(1,ii))
                     sCrd(:).(crdFlds{ii}) = cell2mat(raw(:,ii));
                 else
-                    sCrd(:).(crdFlds{ii}) = raw(:,ii);
+                    error('methodExtract:stnFldFormat',['The current column '...
+                        'is class ' class(raw(1,ii)) ', which has not been programmed for.']);
                 end
-            elseif isnumeric(raw(1,ii))
-                sCrd(:).(crdFlds{ii}) = cell2mat(raw(:,ii));
-            else
-                error('methodExtract:stnFldFormat',['The current column '...
-                    'is class ' class(raw(1,ii)) ', which has not been programmed for.']);
             end
+            clear ii raw
         end
-        clear ii raw
         
         %Find lat and lon fields
         nmStnLat = blanks(0);
@@ -77,6 +91,11 @@ if numel(sDs.fldsTInv(:)) == 1
             end
         end
         clear ii
+        
+        %Remove spaces and cahracters:
+        strrep(nmStn, ' ', '');
+        strrep(nmStn, '-', '');
+        strrep(nmStn, '_', '');
         
 
         %Find station coordinate bounds (used for loading any reference data):
@@ -203,6 +222,7 @@ else
             'match between the data and coordinate files.']);
     end
 end
+
 
 %Set downscaling indice:
 indDsIn = sDs.indDs;

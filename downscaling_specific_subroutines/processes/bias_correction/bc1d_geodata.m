@@ -91,13 +91,13 @@ for mm = 1 : numel(sSim2Bc)
     %Find time-series elements to compare during bias correction:
     %For historic model:
     indSimH = find(sSimH{mm}.(varDate)(:,1) >= min(yrsBase) & sSimH{mm}.(varDate)(:,1) <= max(yrsBase));
-    indRefH = find(sRefH.(varDate)(:,1) >= min(yrsBase) & sRefH.(varDate)(:,1) <= max(yrsBase));
+    indRefH = find(    sRefH.(varDate)(:,1) >= min(yrsBase) &     sRefH.(varDate)(:,1) <= max(yrsBase));
 
     nRefH = numel(indRefH);
     nSimH = numel(indSimH);
     if nRefH ~= nSimH
-        [indSameSimH, ~] = ismember(sSimH{mm}.(varDate)(:,1), sRefH.(varDate)(:,1), 'rows');
-        [indSameRefH, ~] = ismember(sRefH.(varDate)(:,1), sSimH{mm}.(varDate)(:,1), 'rows');
+        [indSameSimH, ~] = ismember(sSimH{mm}.(varDate)(:,1),     sRefH.(varDate)(:,1), 'rows');
+        [indSameRefH, ~] = ismember(    sRefH.(varDate)(:,1), sSimH{mm}.(varDate)(:,1), 'rows');
 
         indSimH = intersect(indSimH, sort(find(indSameSimH ~= 0)));
         indRefH = intersect(indRefH, sort(find(indSameRefH ~= 0)));

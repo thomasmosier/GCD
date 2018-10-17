@@ -43,7 +43,7 @@ for ii = 1 : sDs.nLp
         sDs.indRef = indNew(2:end);
         indDelta = (sDs.indDs - indDsOrg);
         indDsIn = indDsIn + indDelta;
-
+        
     %BIAS CORRECT INPUT
     if ~isempty(sDs.indRef) && ~isnan(sDs.indRef) 
         [sTVar{end+1}, bcMethod] = bc_switch(sTVar, indDsIn, sDs);
@@ -75,11 +75,11 @@ for ii = 1 : sDs.nLp
 %         end
 %     end
 %     clear jj
-    
+
     %Write inputs and outputs:
     if ~isempty(sDs.wrtOut)
 %         ds_wrt_inputs(sTVar, sDs, sPath)
-        ds_wrt_outputs(sTVar{sDs.indDs}, 'bc', sDs, sPath)
+        ds_wrt_outputs(sTVar{sDs.indDs}, 'output', sDs, sPath)
     end
     
     %%DISPLAY DURATION OF TIME FOR-LOOP HAS BEEN RUNNING
