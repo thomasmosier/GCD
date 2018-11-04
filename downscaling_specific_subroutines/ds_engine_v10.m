@@ -263,6 +263,7 @@ if iscell(sPathCurr.('output')) && numel(sPathCurr.('output')(:)) == sDs.nSim
     sPathCurr.('output') = sPathCurr.('output'){sDs.indSim};
 end
 
+
 %%IMPLEMENT DOWNSCALING METHOD
 disp(['NOTE: This program does not freeze, but it can take several ' ...
     'minutes for certain aspects of the script to complete,' char(10) ' depending ' ...
