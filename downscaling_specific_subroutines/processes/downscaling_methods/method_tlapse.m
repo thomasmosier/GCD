@@ -6,7 +6,7 @@ strNorm = 'none';
 
 
 %Make figures
-blWrtFig = 1;
+blWrtFig = 0;
 
 %Path for storing output figures:
 if blWrtFig == 1
@@ -244,6 +244,11 @@ for ii = 1 : sDs.nLp
         sDs.indRef = indNew(2:end);
         indDelta = (sDs.indDs - indDsOrg);
         indDsIn = indDsIn + indDelta;
+    %Round dates:
+    for ll = 1 : numel(sTVar(:))
+        sTVar{ll}.(varDate) = floor(sTVar{ll}.(varDate));
+    end
+    clear ll
         
     if ~isequal(sTInv{indLrDem}.(varLon), sTVar{sDs.indDs}.(varLon))
         error('methodTLapse:londiff','The low-res DEM and simulation time-series longitude grids to not align.');
@@ -271,7 +276,7 @@ for ii = 1 : sDs.nLp
 %         sTsOut.time = sTVar{sDs.indDs}.time;
 %         sTsOut.(sDs.varDs) = nan([numel(sTVar{sDs.indDs}.time), size(lonMeshOut)], 'single');
 
-    
+
     %Write inputs and outputs:
     if ~isempty(sDs.wrtOut) && ~isempty(sDs.indRef) && ~isnan(sDs.indRef) 
 %         ds_wrt_inputs(sTVar, sDs, sPath)
@@ -520,7 +525,7 @@ for ii = 1 : sDs.nLp
         end
         clear mm
     end
-    
+   
     
     %Interpolate smoothed low resolution lapse rate to high res:
     hrLpsMnth = nan([12, size(sTInv{indHrDem}.(varDem))], 'single');
@@ -560,7 +565,7 @@ for ii = 1 : sDs.nLp
         sOutput = sTVar{sDs.indDs};
         sOutput.(sDs.varDs) = nan([nDy, size(sTInv{indHrDem}.(varDem))]);
         sOutput.('time') = sTVar{sDs.indDs}.('time')(indOutCurr);
-        sOutput.(varDate) = sTVar{sDs.indDs}.(varDate)(indOutCurr,:);
+        sOutput.(varDate) = round(sTVar{sDs.indDs}.(varDate)(indOutCurr,:));
         sOutput.(varLon) = sTInv{indHrDem}.(varLon);
         sOutput.(varLat) = sTInv{indHrDem}.(varLat);
 
@@ -692,10 +697,6 @@ for ii = 1 : sDs.nLp
         end
         clear dd
 
-    %     %Precip cannot be less than 0:
-    %     if strcmpi(sDs.varDs, 'pr')
-    %        output(output < 0) = 0; 
-    %     end
 
         %Write monthly downscaled output to file:
         %Make month string:
