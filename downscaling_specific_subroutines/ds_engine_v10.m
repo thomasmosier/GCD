@@ -173,6 +173,14 @@ sDs.yrsLd = [min([min(sMeta.yrsOut), min(sMeta.yrsBase)]) max([max(sMeta.yrsOut)
 sDs.yrsBase = [min(sMeta.yrsBase), max(sMeta.yrsBase)];
 sDs.yrsDs = [min(sMeta.yrsOut), max(sMeta.yrsOut)];
 
+
+if isfield(sMeta, 'yrsBc')
+    sDs.yrsBc = sMeta.yrsBc;
+    sDs.yrsLd = [min([min(sDs.yrsLd), min(sDs.yrsBc)]) max([max(sDs.yrsLd), max(sDs.yrsBc)])];
+else
+    sDs.yrsBc = sDs.yrsDs;
+end
+
 %Find indice of field to downscale:
 [sDs.fldsDs, sDs.fldsBc] = ds_input_process(sDs.fldsTVar, sDs.varDs, sDs.period);
 

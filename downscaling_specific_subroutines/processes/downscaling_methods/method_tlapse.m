@@ -277,11 +277,10 @@ for ii = 1 : sDs.nLp
 %         sTsOut.(sDs.varDs) = nan([numel(sTVar{sDs.indDs}.time), size(lonMeshOut)], 'single');
 
 
-    %Write inputs and outputs:
-    if ~isempty(sDs.wrtOut) && ~isempty(sDs.indRef) && ~isnan(sDs.indRef) 
-%         ds_wrt_inputs(sTVar, sDs, sPath)
-        ds_wrt_outputs(sTVar{sDs.indDs}, 'bc', sDs, sPath)
-    end
+    %Write bias corrected input simulation:
+%     if ~isempty(sDs.wrtOut) && ~isempty(sDs.indRef) && ~isnan(sDs.indRef) 
+%         ds_wrt_outputs(sTVar{sDs.indDs}, 'bc', sDs, sPath)
+%     end
     
     
     %Create climatology(ies):

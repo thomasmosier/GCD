@@ -169,6 +169,14 @@ for ii = 1 : numel(dataIn(:))
 end
 
 
+% %%Select years to use in bias correction:
+% if isfield(sDs, 'yrsBc')
+%     indTime2Bc = find(sSim2Bc.date(:,1) >= min(sDs.yrsBc) & sSim2Bc.date(:,1) <= max(sDs.yrsBc));
+%     sSim2Bc.date = sSim2Bc.date(indTime2Bc,:);
+%     sSim2Bc.(sDs.varDs) = sSim2Bc.(sDs.varDs)(indTime2Bc,:,:);
+% end
+
+
 %Check that all inputs have same time resolution:
 if ~isequal(sSim2Bc.timestep, sSimBase.timestep) || ~isequal(sSim2Bc.timestep, sRefBase.timestep)
     error('bcSwitch:diffTimeStep','The inputs to bias correct have difference time resolutions. Therefore, bias correction cannot proceed.')

@@ -62,7 +62,7 @@ for ii = 1 : numel(fldsLd)
     %Check that data for all years loaded:
     if isfield(sData{ii}, varDate)
         yrsPresent = unique(sData{ii}.(varDate)(:,1));
-        if numel(yrsPresent) ~= max(yrsLd) - min(yrsLd) + 1
+        if ~all(isnan(yrsPresent)) && ~isempty(setdiff((min(yrsLd):max(yrsLd)), yrsPresent)) && max(yrsLd) ~= max(yrsPresent) && min(yrsLd) ~= min(yrsPresent) && any(diff(yrsPresent) ~= 1)
            warning('dsLdFields:diffNumberYrs', ['The number of years loaded '...
                'does not equal the number requested for ' sPath.(fldsLd{ii}) '.']); 
         end
