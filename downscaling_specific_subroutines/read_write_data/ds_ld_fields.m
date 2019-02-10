@@ -200,6 +200,7 @@ if blStitch == 1
                 'has not been programmed for.']);
         end   
 
+        
         %Stitch variables:
         for ii = 1 : numel(indSimHist)
             indAsn = indSimHist(indHistVar(ii));
