@@ -1,5 +1,7 @@
 function [dataModCorr] = e_qm(dataHistRef, dataHistMod, dataMod2Bc, type)
 
+lmtMult = 3; %Limit for bias correction factor
+
 %Initialize output:
 dataModCorr = nan(size(dataMod2Bc));
 
@@ -13,7 +15,6 @@ end
 
 cdfBc = e_invcdf(dataHistMod, dataMod2Bc);
 
-limit = 3; %Limit for bias correction factor
 
 for kk = 1 : numel(dataMod2Bc)
    [~, indHistRef] = min(abs(cdfHistRef - cdfBc(kk)));
@@ -24,7 +25,7 @@ for kk = 1 : numel(dataMod2Bc)
     elseif regexpbl(type, 'mult')
         bcFactor = valHistRef(indHistRef)/valHistMod(indHistMod);
         
-        bcFactor = max([min([bcFactor, limit]), -limit]);
+        bcFactor = max([min([bcFactor, lmtMult]), -lmtMult]);
         dataModCorr(kk) = dataMod2Bc(kk)*bcFactor;
         
         if isnan(dataModCorr(kk)) && dataMod2Bc(kk) == 0 || valHistMod(indHistMod) == 0
@@ -36,5 +37,7 @@ for kk = 1 : numel(dataMod2Bc)
         error('eQm:unknownType',['Type is ' type ', but two options are mult and add.']);
     end
 end
+
+%[dataModCorr,dataMod2Bc]
 
 
