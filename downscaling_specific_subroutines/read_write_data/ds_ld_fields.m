@@ -127,10 +127,10 @@ for ii = 1 : numel(fldsLd)
         end
     end
     
-    if regexpbl(fldsLd{ii}, {'hist','sim'}, 'and')
+    if regexpbl(fldsLd{ii}, {'hist','sim','ts'}, 'and')
         indSimHist(end+1) = ii;
     end
-    if regexpbl(fldsLd{ii}, {'proj','sim'}, 'and')
+    if regexpbl(fldsLd{ii}, {'proj','sim','ts'}, 'and')
         indSimProj(end+1) = ii;
     end
 end
@@ -214,17 +214,30 @@ if blStitch == 1
             if ~isempty(indChange)
                indiceIn(indChange) = indAsn; 
             end
-
-            %Check that lat and lon are the same:
-            if ~isequal(sData{indAsn}.(varLat), sData{indGet}.(varLat)) || ~isequal(sData{indAsn}.(varLon), sData{indGet}.(varLon))
-                warning('dsLdFlds:diffCrd','The current fields cannot be stitched because their coordinates are different.');
-%                 continue 
-            end
+            
             indUnd = regexpi(varAll{ii}, '_');
             if ~isempty(indUnd)
                 varCurr = varAll{ii}(indUnd(end)+1:end);
             else
                 varCurr = varAll{ii};
+            end
+
+            %Check that lat and lon are the same:
+            if ~isequal(sData{indAsn}.(varLat), sData{indGet}.(varLat)) || ~isequal(sData{indAsn}.(varLon), sData{indGet}.(varLon))
+                %[blDiff, sData{indGet}.(varLon), sData{indGet}.(varLat), testGet, testAsn] = crd_within(sData{indGet}.(varLon), sData{indAsn}.(varLon), sData{indGet}.(varLat), sData{indAsn}.(varLat), sData{indGet}.(varCurr), sData{indAsn}.(varCurr));
+                %squeeze(sData{indGet}.(varCurr)(3,:,:))
+                %squeeze(testGet(3,:,:))
+                
+                [blDiff, sData{indGet}.(varLon), sData{indGet}.(varLat), sData{indGet}.(varCurr), sData{indAsn}.(varCurr)] = crd_within(sData{indGet}.(varLon), sData{indAsn}.(varLon), sData{indGet}.(varLat), sData{indAsn}.(varLat), sData{indGet}.(varCurr), sData{indAsn}.(varCurr));
+                
+                if blDiff == 0
+                    warning('dsLdFlds:grids', ...
+                        ['The two grids being stitched are not the same. '...
+                        'This will lead to invalid results and probably a script error.']);
+                else
+                    sData{indAsn}.(varLon) = sData{indGet}.(varLon); 
+                    sData{indAsn}.(varLat) = sData{indGet}.(varLat);
+                end
             end
                 
             sData{indAsn}.(varCurr) = cat(1, sData{indAsn}.(varCurr), sData{indGet}.(varCurr));

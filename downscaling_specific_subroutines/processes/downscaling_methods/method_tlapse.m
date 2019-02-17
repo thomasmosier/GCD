@@ -73,6 +73,7 @@ end
 %Load time invariant data:
 sTInv = ds_ld_fields(sPath, sDs.fldsTInv, sDs.lonDs, sDs.latDs, nan(1,2), nan(1,1), 'onefile');
 
+
 %Find high-res output DEM:
 indHrDem = nan;
 indLrDem = nan;
@@ -250,11 +251,24 @@ for ii = 1 : sDs.nLp
     end
     clear ll
         
-    if ~isequal(sTInv{indLrDem}.(varLon), sTVar{sDs.indDs}.(varLon))
-        error('methodTLapse:londiff','The low-res DEM and simulation time-series longitude grids to not align.');
-    elseif ~isequal(sTInv{indLrDem}.(varLat), sTVar{sDs.indDs}.(varLat))
-        error('methodTLapse:latdiff','The low-res DEM and simulation time-series latitude grids to not align.');
+    %Check that grids align or that one contained in the other
+    if ~isequal(sTInv{indLrDem}.(varLat), sTVar{sDs.indDs}.(varLat)) || ~isequal(sTInv{indLrDem}.(varLon), sTVar{sDs.indDs}.(varLon))
+        %[blDiff, sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), testGet, testAsn] = crd_within(sTVar{sDs.indDs}.(varLon), sTInv{indLrDem}.(varLon), sTVar{sDs.indDs}.(varLat), sTInv{indLrDem}.(varLat), sTVar{sDs.indDs}.(varCurr), sTInv{indLrDem}.(varCurr));
+        %squeeze(sTVar{sDs.indDs}.(varCurr)(3,:,:))
+        %squeeze(testGet(3,:,:))
+
+        [blDiff, sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), sTVar{sDs.indDs}.(varCurr), sTInv{indLrDem}.(varCurr)] = crd_within(sTVar{sDs.indDs}.(varLon), sTInv{indLrDem}.(varLon), sTVar{sDs.indDs}.(varLat), sTInv{indLrDem}.(varLat), sTVar{sDs.indDs}.(varCurr), sTInv{indLrDem}.(varCurr));
+
+        if blDiff == 0
+            warning('dsLdFlds:grids', ...
+                ['The two grids being stitched are not the same. '...
+                'This will lead to invalid results and probably a script error.']);
+        else
+            sTInv{indLrDem}.(varLon) = sTVar{sDs.indDs}.(varLon); 
+            sTInv{indLrDem}.(varLat) = sTVar{sDs.indDs}.(varLat);
+        end
     end
+    
 
     %BIAS CORRECT INPUT
     if ~isempty(sDs.indRef) && ~isnan(sDs.indRef) 
