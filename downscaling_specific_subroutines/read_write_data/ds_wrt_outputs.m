@@ -40,17 +40,6 @@ else
     end
 end
 
-%Set file:
-if ~isempty(fileRt)
-    fileCurr = fileRt;
-elseif blMainOut
-    nmOut = ds_file_nm(sPath, sDs, sDs.indDs);
-    
-    fileCurr = [var, '_', nmOut, '_', typ, '_', sDs.region];
-else
-    fileCurr = [var, '_', typ, '_', sDs.region];
-end
-
 
 %Crop years (if option selected)
 if all(~isnan(yrs))
@@ -60,12 +49,29 @@ if all(~isnan(yrs))
         sTsOut.(var) = sTsOut.(var)(indUse,:,:);
         sTsOut.('date') = sTsOut.('date')(indUse,:);
         if isfield(sTsOut, 'time')
-        sTsOut.('time') = sTsOut.('time')(indUse,:);
+            sTsOut.('time') = sTsOut.('time')(indUse,:);
         end
     else
         warning('dsWrtOutputs:noDateFld','The time is not being cropped because the date field does not exist.')
     end
 end
+
+
+%Set file:
+if ~isempty(fileRt)
+    fileCurr = fileRt;
+elseif blMainOut
+    nmOut = ds_file_nm(sPath, sDs, sDs.indDs, 'date', sTsOut.date);
+    
+    if strcmpi(nmOut(1:numel(var)), var) 
+        fileCurr = [nmOut, '_', typ, '_', sDs.region];
+    else
+        fileCurr = [var, '_', nmOut, '_', typ, '_', sDs.region];
+    end
+else
+    fileCurr = [var, '_', typ, '_', sDs.region];
+end
+
 
 %Crop lat/lon
 varLon = 'longitude';

@@ -284,8 +284,8 @@ elseif regexpbl(sMeta.method, 'direct')
     method_direct(sPathCurr, sDs);
 elseif regexpbl(sMeta.method, 'extract')
     method_extract(sPathCurr, sDs);
-elseif regexpbl(sMeta.method, {'bc','only'})
-    method_bc_only(sPathCurr, sDs);
+elseif regexpbl(sMeta.method, 'subset')
+    method_subset(sPathCurr, sDs);
 elseif regexpbl(sMeta.method, 'tlapse')
     if ~regexpbl(sDs.varDs, {'tmp','tmx','tmn','tas','tave','tavg','tmin','tmax'})
         error('dsEngine:wrongVar',['method_tlapse is only designed to work with temperature variables (current variable is ' sDs.varDs ')']);

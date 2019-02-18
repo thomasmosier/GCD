@@ -41,7 +41,8 @@ for ii = 1 : sDs.nLp
     end
     
     %%LOAD INPUTS:
-    [sTVar, ~, sDs.fldsTVar] = ds_ld_fields(sPath, fldsIn, sDs.lonDs, sDs.latDs, sDs.yrsLd, mnthCurr, 'stitch', 1, 'indice', [sDs.indDs(:); sDs.indRef(:)], 'resample', sDs.resample, 'frame', 2);
+    [sTVar, ~, sDs.fldsTVar] = ds_ld_fields(sPath, fldsIn, sDs.lonDs, sDs.latDs, sDs.yrsLd, mnthCurr, ...
+        'stitch', 1, 'indice', [sDs.indDs(:); sDs.indRef(:)], 'resample', sDs.resample, 'frame', 2, 'units', sDs.units);
 %     [sTVar, indNew] = ds_ld_fields(sPath, sDs.fldsTVar, sDs.lonDs, sDs.latDs, sDs.yrsLd, mnthCurr, 'stitch', 1, 'indice', [sDs.indDs(:); sDs.indRef(:)], 'resample', sDs.resample);
     %Update indices of data to use
     for zz = 1 : numel(sDs.fldsTVar)

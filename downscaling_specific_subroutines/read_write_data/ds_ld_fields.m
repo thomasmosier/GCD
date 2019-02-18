@@ -117,6 +117,13 @@ for ii = 1 : numel(fldsLd)
                 elseif strcmpi(unitsCurr, 'm') && strcmpi(unitsUse, 'mm')
                     sData{ii}.(varLd) = sData{ii}.(varLd)*1000;
                     sData{ii}.(nmAtt) = set_att(sData{ii}.(nmAtt), 'units', unitsUse);
+                elseif strcmpi(unitsCurr, 'kg m-2 s-1') && strcmpi(unitsUse, 'mm')
+                    scl = 86400;
+
+                    sData{ii}.(varLd) = sData{ii}.(varLd)*scl;
+                    sData{ii}.(nmAtt) = set_att(sData{ii}.(nmAtt), 'units', 'mm/day');
+                elseif strcmpi(unitsCurr, 'kg m**-2') && strcmpi(unitsUse, 'mm')
+                    sData{ii}.(nmAtt) = set_att(sData{ii}.(nmAtt), 'units', unitsUse);
                 else
                     warning('dsLdFields:unitsNotProgrammed', ['Units will ' ...
                         'not be switched because the combination has not ' ...

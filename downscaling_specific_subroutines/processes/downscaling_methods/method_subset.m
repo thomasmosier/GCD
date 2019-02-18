@@ -1,6 +1,6 @@
-function method_bc_only(sPath, sDs)
+function method_subset(sPath, sDs)
 
-error('methodBcOnly:obsolete','This method has been replaced by method_subset. Functionally they are the same.')
+
 %Load time invariant data:
 % sTInv = ds_ld_fields(sPath, sDs.fldsTInv, sDs.lonDs, sDs.latDs, nan(1,2), nan(1,1));
 % if numel(sTInv(:)) == 1
@@ -37,7 +37,8 @@ for ii = 1 : sDs.nLp
     
     %%LOAD INPUTS:
         indDsOrg = sDs.indDs;
-    [sTVar, indNew] = ds_ld_fields(sPath, sDs.fldsTVar, sDs.lonDs, sDs.latDs, sDs.yrsLd, mnthCurr, 'stitch', 1, 'indice', [sDs.indDs(:); sDs.indRef(:)], 'resample', sDs.resample);
+    [sTVar, indNew] = ds_ld_fields(sPath, sDs.fldsTVar, sDs.lonDs, sDs.latDs, sDs.yrsLd, mnthCurr, ...
+        'stitch', 1, 'indice', [sDs.indDs(:); sDs.indRef(:)], 'resample', sDs.resample, 'units', sDs.units);
     %Update 'indDsIn' based on change in indDs
         sDs.indDs = indNew(1);
         sDs.indRef = indNew(2:end);
@@ -53,28 +54,6 @@ for ii = 1 : sDs.nLp
     else 
         sDs.indDs = indDsIn;
     end
-    
-%     %Create input grid
-%     [lonMeshIn, latMeshIn] = meshgrid(sTVar{sDs.indDs}.(sDs.varLon), sTVar{sDs.indDs}.(sDs.varLat));
-%     
-%     %Initialize output structure:
-%     sTsOut = sTVar{sDs.indDs};
-%         sTsOut.lat = latOut;
-%         sTsOut.lon = lonOut;
-%         sTsOut.time = sTVar{sDs.indDs}.time;
-%         sTsOut.(sDs.varDs) = nan([numel(sTVar{sDs.indDs}.time), size(lonMeshOut)], 'single');
-% 
-%     %%ITERATE OVER timesteps:
-%     for jj = 1 : numel(sDs.time)
-%         if regexpi(sDs.intrp,'pchip')
-%             sTsOut.(sDs.varDs)(jj,:,:) = ...
-%                 PCHIP_2D(lonMeshIn, latMeshIn, squeeze(sTVar{sDs.indDs}.(sDs.varDs)(jj,:,:)), lonMeshOut, latMeshOut);
-%         else
-%             sTsOut.(sDs.varDs)(jj,:,:) = ...
-%                 interp2(lonMeshIn, latMeshIn, squeeze(sTVar{sDs.indDs}.(sDs.varDs)(jj,:,:)), lonMeshOut, latMeshOut, sDs.intrp);
-%         end
-%     end
-%     clear jj
 
     %Write inputs and outputs:
     if ~isempty(sDs.wrtOut)

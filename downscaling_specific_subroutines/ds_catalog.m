@@ -30,6 +30,18 @@ elseif regexpbl(strMethod, 'extract')
             varDs, 'hist_sim_ts', 'low-resolution historical simulation time-series' ...
             };
     end
+elseif regexpbl(strMethod, 'subset')
+    if regexpbl(tPeriod, 'pro')
+        strMethodDisp = 'Extracting physical and temporal region from projection simulations';
+        dataInfo = { ...
+            varDs, 'proj_sim_ts', 'low-resolution projection time-series' ...
+            };
+    elseif regexpbl(tPeriod, 'hist')
+        strMethodDisp = 'Extracting physical and temporal region from historical simulations';
+        dataInfo = { ...
+            varDs, 'hist_sim_ts', 'low-resolution historical simulation time-series' ...
+            };
+    end    
 elseif regexpbl(strMethod, 'delta')
     if regexpbl(tPeriod, 'pro')
         strMethodDisp = 'Delta change of projection simulations';
@@ -111,19 +123,19 @@ elseif regexpbl(strMethod, 'roe') %Roe orographic model
             'z', 'hr_out_dem', 'output-resolution DEM aligning with output-resolution temperature simulation'; ...
             };
     end
-elseif regexpbl(strMethod, {'bc','only'}, 'and')
-    if regexpbl(tPeriod, 'pro')
-        strMethodDisp = 'Delta change of projection simulations';
-        dataInfo = {...
-            varDs, 'proj_sim_ts', 'low-resolution projection simulation time-series';...
-            varDs, 'hist_sim_ts', 'low-resolution historical simulation time-series' ...
-            };
-    elseif regexpbl(tPeriod, 'hist')
-        strMethodDisp = 'Delta change of historical simulations';
-        dataInfo = {...
-            varDs, 'hist_sim_ts', 'low-resolution historical simulation time-series' ...
-            };
-    end
+% elseif regexpbl(strMethod, {'bc','only'}, 'and')
+%     if regexpbl(tPeriod, 'pro')
+%         strMethodDisp = 'Bias correction of projection simulations';
+%         dataInfo = {...
+%             varDs, 'proj_sim_ts', 'low-resolution projection simulation time-series';...
+%             varDs, 'hist_sim_ts', 'low-resolution historical simulation time-series' ...
+%             };
+%     elseif regexpbl(tPeriod, 'hist')
+%         strMethodDisp = 'Bias correction of historical simulations';
+%         dataInfo = {...
+%             varDs, 'hist_sim_ts', 'low-resolution historical simulation time-series' ...
+%             };
+%     end
 else
     error('dsCatalog:unknownType',['The downscaling method ' strMethod ...
         ' has not been programmed for. Add desired method to this function']);
@@ -156,7 +168,7 @@ if regexpbl(strMethod, {'eQM', 'q2q'})
     elseif regexpbl(strMethod, 'Q2Q')
         strMethodDisp = [strMethodDisp ' bias corrected using empirical quantile-to-quantile mapping'];
     else
-        error('dsCatalog:1DbcMethodUnknown',['Bias correction method ' strMethod ' is not recognized.'])
+        error('dsCatalog:oneDbcMethodUnknown',['Bias correction method ' strMethod ' is not recognized.'])
     end
 elseif regexpbl(strMethod, 'eJBC')
     strMethodDisp = [strMethodDisp ' bias corrected using empirical joint bias correction'];

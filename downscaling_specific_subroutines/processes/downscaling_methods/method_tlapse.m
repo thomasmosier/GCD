@@ -250,14 +250,41 @@ for ii = 1 : sDs.nLp
         sTVar{ll}.(varDate) = floor(sTVar{ll}.(varDate));
     end
     clear ll
+    
+    
+    flds = fieldnames(sTVar{sDs.indDs});
+    if ~any(strcmpi(sDs.varDs, flds))
+        if strcmpi(sDs.varDs, 'tmp')
+            if any(strcmpi(flds, 'tas'))
+                sDs.varDs = 'tas';
+            else
+                error('methodTLapse:noTmpVar','No variable was found in the data corresponding to tmp.')
+            end  
+        elseif strcmpi(varLd, 'tmn')
+            if any(strcmpi(flds, 'tasmin'))
+                sDs.varDs = 'tasmin';
+            elseif any(strcmpi(flds, 'tmin'))
+                sDs.varDs = 'tmin';
+            else
+                error('methodTLapse:noTmnVar','No variable was found in the data corresponding to tmn.')
+            end
+        elseif strcmpi(varLd, 'tmx')
+            if any(strcmpi(flds, 'tasmax'))
+                sDs.varDs = 'tasmax';
+            elseif any(strcmpi(flds, 'tmax'))
+                sDs.varDs = 'tmax';
+            else
+                error('methodTLapse:noTmxVar','No variable was found in the data corresponding to tmx.')
+            end
+        end
+    end
         
     %Check that grids align or that one contained in the other
     if ~isequal(sTInv{indLrDem}.(varLat), sTVar{sDs.indDs}.(varLat)) || ~isequal(sTInv{indLrDem}.(varLon), sTVar{sDs.indDs}.(varLon))
-        %[blDiff, sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), testGet, testAsn] = crd_within(sTVar{sDs.indDs}.(varLon), sTInv{indLrDem}.(varLon), sTVar{sDs.indDs}.(varLat), sTInv{indLrDem}.(varLat), sTVar{sDs.indDs}.(varCurr), sTInv{indLrDem}.(varCurr));
-        %squeeze(sTVar{sDs.indDs}.(varCurr)(3,:,:))
+        %[blDiff, sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), testGet, testAsn] = crd_within(sTVar{sDs.indDs}.(varLon), sTInv{indLrDem}.(varLon), sTVar{sDs.indDs}.(varLat), sTInv{indLrDem}.(varLat), sTVar{sDs.indDs}.(sDs.varDs), sTInv{indLrDem}.(sDs.varDs));
+        %squeeze(sTVar{sDs.indDs}.(sDs.varDs)(3,:,:))
         %squeeze(testGet(3,:,:))
-
-        [blDiff, sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), sTVar{sDs.indDs}.(varCurr), sTInv{indLrDem}.(varCurr)] = crd_within(sTVar{sDs.indDs}.(varLon), sTInv{indLrDem}.(varLon), sTVar{sDs.indDs}.(varLat), sTInv{indLrDem}.(varLat), sTVar{sDs.indDs}.(varCurr), sTInv{indLrDem}.(varCurr));
+        [blDiff, sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), sTVar{sDs.indDs}.(sDs.varDs), sTInv{indLrDem}.(sDs.varDs)] = crd_within(sTVar{sDs.indDs}.(varLon), sTInv{indLrDem}.(varLon), sTVar{sDs.indDs}.(varLat), sTInv{indLrDem}.(varLat), sTVar{sDs.indDs}.(sDs.varDs), sTInv{indLrDem}.(sDs.varDs));
 
         if blDiff == 0
             warning('dsLdFlds:grids', ...

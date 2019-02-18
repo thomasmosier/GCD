@@ -68,7 +68,8 @@ methodDs = 'eQM_delta';
     %'delta' = implements delta method.
     %'direct' = directly interpolates low-resolution time-series grid to 
         %reference grid
-    %'extract' = extracts points from a grid
+    %'extract' = extracts points from grid
+    %'subset' = extracts physical and temporal region from grid
     
     %BIAS CORRECTION
     %'eQM' = empirical quantile mapping bias-correction
@@ -242,6 +243,7 @@ sMeta = struct;
     sMeta.('period')     = simPeriod;
     sMeta.('nSim')       = nSim;
     sMeta.('timestep')   = dataTimestep;
+    sMeta.('wrtPrec')    = wrtPrec;
     if exist('unitsUse', 'var')
         sMeta.('unitsUse')   = unitsUse;
     end
