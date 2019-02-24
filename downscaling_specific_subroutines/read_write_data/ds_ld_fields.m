@@ -124,6 +124,9 @@ for ii = 1 : numel(fldsLd)
                     sData{ii}.(nmAtt) = set_att(sData{ii}.(nmAtt), 'units', 'mm/day');
                 elseif strcmpi(unitsCurr, 'kg m**-2') && strcmpi(unitsUse, 'mm')
                     sData{ii}.(nmAtt) = set_att(sData{ii}.(nmAtt), 'units', unitsUse);
+                elseif strcmpi(unitsCurr, 'K') && strcmpi(unitsUse, 'Celsius')
+                    sData{ii}.(varLd) = sData{ii}.(varLd) - 273.15;
+                    sData{ii}.(nmAtt) = set_att(sData{ii}.(nmAtt), 'units', 'Celsius');
                 else
                     warning('dsLdFields:unitsNotProgrammed', ['Units will ' ...
                         'not be switched because the combination has not ' ...
