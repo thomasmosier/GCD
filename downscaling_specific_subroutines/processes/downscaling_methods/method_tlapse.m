@@ -284,7 +284,7 @@ for ii = 1 : sDs.nLp
         %[blDiff, sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), testGet, testAsn] = crd_within(sTVar{sDs.indDs}.(varLon), sTInv{indLrDem}.(varLon), sTVar{sDs.indDs}.(varLat), sTInv{indLrDem}.(varLat), sTVar{sDs.indDs}.(sDs.varDs), sTInv{indLrDem}.(sDs.varDs));
         %squeeze(sTVar{sDs.indDs}.(sDs.varDs)(3,:,:))
         %squeeze(testGet(3,:,:))
-        [blDiff, sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), sTVar{sDs.indDs}.(sDs.varDs), sTInv{indLrDem}.(sDs.varDs)] = crd_within(sTVar{sDs.indDs}.(varLon), sTInv{indLrDem}.(varLon), sTVar{sDs.indDs}.(varLat), sTInv{indLrDem}.(varLat), sTVar{sDs.indDs}.(sDs.varDs), sTInv{indLrDem}.(sDs.varDs));
+        [blDiff, sTVar{sDs.indDs}.(varLon), sTVar{sDs.indDs}.(varLat), sTVar{sDs.indDs}.(sDs.varDs), sTInv{indLrDem}.(sDs.varDs)] = crd_within(sTVar{sDs.indDs}.(varLon), sTInv{indLrDem}.(varLon), sTVar{sDs.indDs}.(varLat), sTInv{indLrDem}.(varLat), sTVar{sDs.indDs}.(sDs.varDs), sTInv{indLrDem}.(varDem));
 
         if blDiff == 0
             warning('dsLdFlds:grids', ...
