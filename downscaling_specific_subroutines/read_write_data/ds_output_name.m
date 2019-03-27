@@ -8,7 +8,7 @@ if mnth < 10
 else
     strMnth = num2str(mnth);
 end
-    
+keyboard
 
 %Create date string:
 if strcmpi(typOut, 'ds')

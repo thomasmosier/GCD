@@ -74,7 +74,10 @@ for ii = 1 : sDs.nLp
 
     
     %Loop over output files:
-    for ll = 1 : numel(datesYrMnth(:,1))   
+    for ll = 1 : numel(datesYrMnth(:,1))
+        yrCurr = datesYrMnth(ll,1);
+        mnthCurr = datesYrMnth(ll,2);
+        
         %Initialize grids for current month:
         indOutCurr = find(ismember(sTVar{sDs.indDs}.(varDate)(:,1:2), datesYrMnth(ll,1:2), 'rows'));
         
@@ -83,7 +86,7 @@ for ii = 1 : sDs.nLp
             sTsOut.(varLat) = latOut;
             sTsOut.(varLon) = lonOut;
             sTsOut.time = sTVar{sDs.indDs}.time(indOutCurr);
-            sTsOut.(varDate) = round(sTVar{sDs.indDs}.(varDate)(indOutCurr,:));
+            sTsOut.(varDate) = floor(sTVar{sDs.indDs}.(varDate)(indOutCurr,:));
             sTsOut.(sDs.varDs) = nan([numel(indOutCurr), size(lonMeshOut)], 'single');
         
         
@@ -104,13 +107,37 @@ for ii = 1 : sDs.nLp
         if ~isempty(sDs.wrtOut)
             nmStrCurr = strrep(['nm_' sDs.fldsTVar{indDsIn}], 'projhist', 'proj');
             strData = sPath.(nmStrCurr){1};
+            indUnd = regexpi(strData, '_');
+            indDate = min(regexpi(strData, '\d{6,8}'));
+            
+            if ~isempty(indDate)
+               if ~isempty(indUnd)
+                  indEnd = find(indUnd < indDate, 1, 'last');
+                  indEnd = indUnd(indEnd);
+                  
+                  if ~isempty(indEnd)
+                      strData = strData(1:indEnd-1);
+                  end
+               end
+            end
+            
 
             for kk = 1 : numel(sDs.wrtOut(:))
                 if regexpbl(sDs.wrtOut{kk}, {'ds','ts'}, 'and') || regexpbl(sDs.wrtOut{kk}, {'downscale','ts'}, 'and')
                      %Make file and path names:
-                    fileDs = ds_output_name(sDs, strData, mnthCurr, 'ds');
+                     if mnthCurr < 10
+                        strMnth = ['0' num2str(mnthCurr)];
+                    else
+                        strMnth = num2str(mnthCurr);
+                     end
+                     nDy = eomday(yrCurr, mnthCurr);
+        
+                     fileDs = [strData '-ds-' sDs.region '_' ...
+                        num2str(yrCurr) strMnth '01' '-' ...
+                        num2str(yrCurr) strMnth num2str(nDy), '.nc'];
+%                     fileDs = ds_output_name(sDs, strData, mnthCurr, 'ds');
 
-                    ds_wrt_outputs(sTsOut, 'delta', sDs, sPath, 'file', fileDs, 'yrs', sDs.yrsDs);
+                    ds_wrt_outputs(sTsOut, 'output', sDs, sPath, 'file', fileDs, 'yrs', sDs.yrsDs);
                 elseif regexpbl(sDs.wrtOut{kk}, {'in','clim'}, 'and')
                     ds_wrt_outputs(sSimClm, 'inputclim', sDs, sPath);
                 elseif regexpbl(sDs.wrtOut{kk}, {'ref','clim'}, 'and')
