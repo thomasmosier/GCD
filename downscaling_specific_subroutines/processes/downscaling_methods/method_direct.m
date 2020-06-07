@@ -40,6 +40,7 @@ for ii = 1 : sDs.nLp
         mnthDisp = 'annual';
     end
 
+    
     %%LOAD INPUTS:
     [sTVar, ~, sDs.fldsTVar] = ds_ld_fields(sPath, fldsIn, sDs.lonDs, sDs.latDs, sDs.yrsLd, mnthCurr, ...
         'stitch', 1, 'indice', [sDs.indDs(:); sDs.indRef(:)], 'resample', sDs.resample, 'frame', 2, 'units', sDs.units);
@@ -53,6 +54,7 @@ for ii = 1 : sDs.nLp
         end
     end
 
+    
     %BIAS CORRECT INPUT
     if ~isempty(sDs.indRef) && ~isnan(sDs.indRef) 
         [sTVar{end+1}, bcMethod] = bc_switch(sTVar, indDsIn, sDs);
@@ -121,7 +123,7 @@ for ii = 1 : sDs.nLp
                end
             end
             
-
+            
             for kk = 1 : numel(sDs.wrtOut(:))
                 if regexpbl(sDs.wrtOut{kk}, {'ds','ts'}, 'and') || regexpbl(sDs.wrtOut{kk}, {'downscale','ts'}, 'and')
                      %Make file and path names:
