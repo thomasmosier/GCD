@@ -201,11 +201,31 @@ end
 if regexpbl(strMethod, 'stnAvg')
     strMethodDisp = [strMethodDisp ' with station record bias removal'];
     
+    if regexpbl(tPeriod, 'pro')
+        dataInfo = cat(1, dataInfo, ...
+            {varDs, 'hist_sim_ts', 'low-resolution historical simulation time-series'});
+    end
+    
     dataInfo = cat(1, dataInfo, ...
-        {varDs, 'hist_rec_ts', 'station record time-series'});
+        {varDs, 'hist_rec_ts', 'locational reference time-series'});
     
     if ~regexpbl(strMethod, 'extract')
        warning('dsCatalog:methodNotExtract', ['Station average bias removal ' ...
+           'only designed to work with method = extract.']) 
+    end
+elseif regexpbl(strMethod, 'stnQM')
+    strMethodDisp = [strMethodDisp ' with station empirical quantile mapping bias correction'];
+    
+    if regexpbl(tPeriod, 'pro')
+        dataInfo = cat(1, dataInfo, ...
+            {varDs, 'hist_sim_ts', 'low-resolution historical simulation time-series'});
+    end
+    
+    dataInfo = cat(1, dataInfo, ...
+        {varDs, 'hist_rec_ts', 'locational reference time-series'});
+    
+    if ~regexpbl(strMethod, 'extract')
+       warning('dsCatalog:methodNotExtract', ['Station empirical quantile mapping bias correction is ' ...
            'only designed to work with method = extract.']) 
     end
 end

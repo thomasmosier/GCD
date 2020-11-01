@@ -39,7 +39,7 @@ if numel(sDs.fldsTInv(:)) == 1
         crdFlds = raw(1,:);
         raw = raw(2:end,:);
         raw(cellfun(@(x) ~isempty(x) && isnumeric(x) && isnan(x),raw)) = {''};
-
+        
         sCrd = struct;
         if any(strcmpi(crdFlds, varLat)) && any(strcmpi(crdFlds, varLon)) && any(strcmpi(crdFlds, varNm))
             indLat = find(strcmpi(crdFlds, varLat) == 1);
@@ -144,13 +144,22 @@ if regexpbl(sDs.method, 'stn')
         %Find header indices and reformat dates/data
         [~, stnDataNm] = xlsread(pathStnData);
         stnDataNm = stnDataNm(1,:);
+        
+        %Remove 'date' if present:
+        indStnDate = find(strcmpi(stnDataNm, 'date') == 1);
+        if ~isempty(indStnDate)
+            stnDataNm(indStnDate) = [];
+            raw(:, indStnDate) = [];
+        end
+        
+        %Find date components:
         indStnYr = find(strcmpi(stnDataNm, 'year') == 1);
         indStnMnth = find(strcmpi(stnDataNm, 'month') == 1);
         indStnDy = find(strcmpi(stnDataNm, 'day') == 1);
         indStnHdr = unique([indStnYr, indStnMnth, indStnDy]);
         if numel(indStnHdr) ~= 3
             error('methodExtract:unknownHdr', [num2str(numel(indStnHdr)) ...
-                ' header elements found, but three expected.']);
+                ' header elements found, but three expected in ' pathStnData]);
         else
             stnDataNm(indStnHdr) = [];
         end
@@ -188,7 +197,7 @@ sCrd.(varDate) = cell(nStn,1);
 
 if numel(stnDataNm(:)) ~= numel(sCrd.(crdFlds{1})(:))
     error('methodExtract:stnNumber', [num2str(numel(stnData(1,:)))  ...
-        ' stations found in data file and ' num2str(numel(sCrd(:).(crdFlds{1}){1})) ...
+        ' stations found in data file and ' num2str(numel(sCrd(:).(crdFlds{1})(:))) ...
         ' found in coordinate file. These numbers are expected to be the same.']);
 else
     indOrd = (1:nStn);
@@ -318,10 +327,17 @@ for ii = 1 : sDs.nLp
         %If 'stnAvg' bias correction is programmed for, note and remove
         %from method string (occurs after any other bias correction method:
         blStnAvgBc = 0;
+        blStnQmBc = 0;
         methodFull = sDs.method;
         if regexpbl(sDs.method, 'stnAvg')
            blStnAvgBc = 1; 
            sDs.method = strrep(strrep(sDs.method, 'stnAvg', ''), '__', '_');
+           if isequal(sDs.method(1), '_')
+               sDs.method = sDs.method(2:end);
+           end
+        elseif regexpbl(sDs.method, 'stnQM')
+           blStnQmBc = 1; 
+           sDs.method = strrep(strrep(sDs.method, 'stnQM', ''), '__', '_');
            if isequal(sDs.method(1), '_')
                sDs.method = sDs.method(2:end);
            end
@@ -344,27 +360,47 @@ for ii = 1 : sDs.nLp
         sDs.method = methodFull;
         
         %Implement station average bias removal
-        if blStnAvgBc == 1
+        if blStnAvgBc == 1 || blStnQmBc == 1
             sTVarPtStnBc = sTVarPt;
-            for ll = 1 : numel(sDs.fldsTVar)
-                if ll ~= sDs.indDs
-                    warning('off', 'stnAvgBc:noStnRec');
+            
+            if blStnAvgBc == 1
+                for ll = 1 : numel(sDs.fldsTVar)
+                    if ll ~= sDs.indDs
+                        warning('off', 'stnAvgBc:noStnRec');
+                    end
+                    sTVarPtStnBc{ll} = stn_avg_bc(sStnCurr, sTVarPt{ll}, sSim2Bc, sDs.varDs);
+                    if ll ~= sDs.indDs
+                        warning('on', 'stnAvgBc:noStnRec');
+                    end
                 end
-                sTVarPtStnBc{ll} = stn_avg_bc(sTVarPt{ll}, sStnCurr, sDs.varDs);
-                if ll ~= sDs.indDs
-                    warning('on', 'stnAvgBc:noStnRec');
-                end
+                clear ll
+            elseif blStnQmBc == 1
+                %Find which fields to use for bias correction (sim versus ref)
+                sTVarPtStnBc{1} = bc_switch_stn(sStnCurr, sTVarPt, indDsIn, sDs);
+                %sTVarPtStnBc{ll} = stn_eQM_bc(sStnCurr, sTVarPt{ll}, sSim2Bc, sDs.varDs, sDs.timestep);
             end
-            clear ll
+              
             
             %Write station specific outputs:
                 sDs.wrtFmt = 'csv';
             %(Bias corrected with station only)
-            nmBcStnOnly = '-bc-avg-stn';
-            nmBcComb = ['-bc-' bcMethod '-avg-stn'];
-        
+            if blStnAvgBc == 1
+                nmBcStnOnly = '-bc-avg-stn-only';
+                if ~exist('bcMethod', 'var')
+                   bcMethod = sDs.method; 
+                end
+                nmBcComb = ['-bc-' bcMethod '-global-and-avg-stn'];
+            elseif blStnQmBc == 1
+                nmBcStnOnly = '-bc-eQM-stn-only';
+                if ~exist('bcMethod', 'var')
+                   bcMethod = sDs.method; 
+                end
+                nmBcComb = ['-bc-' bcMethod '-global-and-eQM-stn'];
+            end
+            
+            %Bias corrected with station data only
             ds_wrt_outputs(sTVarPtStnBc{indDsIn}, [sCrd.(nmStn){kk} nmBcStnOnly], sDs, sPath, 'fold', nmBaseOut, 'yrs', sDs.yrsDs);    
-            %(Bias corrected with previous method and station)
+            %Bias corrected with both the global method and station records
             ds_wrt_outputs(sTVarPtStnBc{sDs.indDs}, [sCrd.(nmStn){kk} nmBcComb], sDs, sPath, 'fold', nmBaseOut, 'yrs', sDs.yrsDs);
                 sDs.wrtFmt = orgWrtTyp;
         end
@@ -397,7 +433,7 @@ for ii = 1 : sDs.nLp
         if kk == 1
             sPtAllOut = cell(numel(sTVarPt), 1);
             
-            if blStnAvgBc == 1
+            if blStnAvgBc == 1 || blStnQmBc == 1
                 sPtAllOutStnBc = cell(numel(sTVarPt), 1);
             end
         end
@@ -405,14 +441,14 @@ for ii = 1 : sDs.nLp
             if kk == 1
                 sPtAllOut{ll} = struct;
                 sPtAllOut{ll}.(varDate) = sTVarPt{ll}.(varDate);
-                if blStnAvgBc == 1
+                if blStnAvgBc == 1 || blStnQmBc == 1
                     sPtAllOutStnBc{ll} = struct;
                     sPtAllOutStnBc{ll}.(varDate) = sTVarPt{ll}.(varDate);
                 end
             end
             sPtAllOut{ll}.(sCrd.(nmStn){kk}) = sTVarPt{ll}.(sDs.varDs);
             
-            if blStnAvgBc == 1
+            if blStnAvgBc == 1 || blStnQmBc == 1
                 sPtAllOutStnBc{ll}.(sCrd.(nmStn){kk}) = sTVarPtStnBc{ll}.(sDs.varDs);
             end
         end
@@ -437,8 +473,9 @@ for ii = 1 : sDs.nLp
     end
     clear ll
     
+    
     %Write gathered outputs bias corrected with station)
-    if blStnAvgBc == 1
+    if blStnAvgBc == 1 || blStnQmBc == 1
         for ll = 1 : numel(sPtAllOut)
             nmBaseOutCurr = ds_file_nm(sPath, sDs, ll);
             if ll == sDs.indDs %(Bias corrected with previous method and station)

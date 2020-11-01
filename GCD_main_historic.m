@@ -98,6 +98,7 @@ yrsClim = [1970, 2000]; %Format = [1st year, end year] of climatology.
 %Determine output file type:
 writeType = 'ascii';    %'ascii' = individual ascii files (ESRI format)
                         %'netCDF' = A single netCDF file (Analogous to CMIP5 format)
+wrtPrec = 1;
 %Determine which data to print to file ('writeOpts' is a cell array that 
 %can contain any permutation of the below options): 
 writeOpts = {'ds_ts', 'hist_sim', 'hist_reg', 'anomaly_lr', 'anomaly_hr', 'cdf'};

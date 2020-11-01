@@ -1,5 +1,6 @@
 function [sDataOut, bcMethod] = bc_switch(dataIn, indSim2Bc, sDs)
 
+
 if ~iscell(dataIn)
     error('bcSwitch:notCell','Input data are expcted to be a cell.');
 end

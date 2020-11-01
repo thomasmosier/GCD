@@ -1,4 +1,4 @@
-function sOut = stn_avg_bc(sSim, sStnRec, varDs)
+function sOut = stn_avg_bc(sStnRec, sSim, sSim2Bc, varDs)
 
 
 varDate = 'date';
@@ -33,11 +33,11 @@ else
     if strcmpi(type, 'mult')
         stnBias = nanmean(squeeze(sSim.(varDs)(indSimH,:,:))) / nanmean(sStnRec.(varDs));
 
-        sOut.(varDs) = sSim.(varDs) / stnBias;
+        sOut.(varDs) = sSim2Bc.(varDs) / stnBias;
     elseif strcmpi(type, 'add')
         stnBias = nanmean(squeeze(sSim.(varDs)(indSimH,:,:))) - nanmean(sStnRec.(varDs));
 
-        sOut.(varDs) = sSim.(varDs) - stnBias;
+        sOut.(varDs) = sSim2Bc.(varDs) - stnBias;
     else
         error('stnAvgBc:unknownBcType',[type ' is an unknown bias correction method.']);
     end
